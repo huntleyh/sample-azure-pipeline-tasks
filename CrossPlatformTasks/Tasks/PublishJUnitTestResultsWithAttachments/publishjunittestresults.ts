@@ -61,6 +61,8 @@ async function run() {
 
             await uploadTestCaseResults(testRunId, runSettings, helper);
 
+            // TODO: Add logic to upload general attachment
+            
             console.log('Updating test run with final outcome.')
             let body: apiContracts.testRunUpdateRequestBody = {} as apiContracts.testRunUpdateRequestBody;
 
@@ -111,27 +113,12 @@ async function uploadTestCaseResults(testRunId: number, runSettings: inputContra
         {
             console.log('Sending batch of test results.');
 
-            //let uri = `${runSettings.organization}/${runSettings.project}/_apis/test/Runs/${testRunId}/results?api-version=5.1`;
-
             let response: apiContracts.testResultResponse = await helper.addTestResults(testRunId, testResults);
 
             if(response == null)
             {
                 throw new Error('Failed to add test results');
             }
-            /*
-            await request.post({uri: uri, auth: runSettings.auth, json: true, body: JSON.stringify(testResults)},
-                function (error: any, response: { statusCode: number; }, body: any) {
-                    console.log('body:', body);
-
-                    if(response.statusCode != 200)
-                    {
-                        tl.setResult(tl.TaskResult.Failed, error.message || 'Update test result failed', true);
-                        return;
-                    }
-                }
-            );
-            */
 
             sizeCount = 0;
             testResults = [];
@@ -140,6 +127,7 @@ async function uploadTestCaseResults(testRunId: number, runSettings: inputContra
 }
 function getTestOutcome(className: string, methodName: string): boolean
 {
+    // TODO: Add logic to retrieve the test outcome from the available JUnit test results
     return true;
 }
 function getFinalTestResultsOutcome(): string
