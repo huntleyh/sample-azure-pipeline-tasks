@@ -8,8 +8,8 @@
     "category": "Utility",
     "author": "AgileMindset",
     "version": {
-        "Major": 1,
-        "Minor": 5,
+        "Major": 2,
+        "Minor": 0,
         "Patch": 0
     },
     "groups": [
@@ -24,7 +24,7 @@
         {
             "name": "sampleString",
             "type": "string",
-            "label": "Sample String",
+            "label": "V2 Sample String",
             "defaultValue": "a sample input to test with",
             "required": true,
             "helpMarkDown": "A sample string"

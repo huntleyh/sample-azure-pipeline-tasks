@@ -1,0 +1,34 @@
+{
+  "name": "publishjunittestresultswithattachments",
+  "version": "1.0.0",
+  "description": "Publish JUnit Tests to AzDo with Attachments",
+  "main": "publishjunittestresults.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [
+    "junit",
+    "test",
+    "results",
+    "test",
+    "plan"
+  ],
+  "engines": {
+    "node": ">=8"
+  },
+  "author": "AgileMindset",
+  "license": "ISC",
+  "dependencies": {
+    "azure-pipelines-task-lib": "^2.9.3",
+    "node-rest-client": "^3.1.0",
+    "request": "^2.88.0",
+    "typed-rest-client": "^1.7.1",
+    "util.promisify": "^1.0.1"
+  },
+  "devDependencies": {
+    "@types/mocha": "^7.0.1",
+    "@types/node": "^13.5.3",
+    "@types/q": "^1.5.2",
+    "sync-request": "^6.1.0"
+  }
+}

@@ -1,0 +1,172 @@
+{
+    "id": "b3e01ccd-9524-4fae-8a3f-9c130ccb16e2",
+    "name": "PublishJUnitTestResultsWithAttachments",
+    "friendlyName": "Publish JUnit Tests with Attachments",
+    "description": "Publish test results with attachments tied to Azure Test Plan Test Cases",
+    "helpMarkDown": "",
+    "category": "Test",
+    "visibility": [
+        "Build",
+        "Release"
+    ],
+    "runsOn": [
+        "Agent",
+        "DeploymentGroup"
+    ],
+    "author": "AgileMindset",
+    "version": {
+        "Major": 0,
+        "Minor": 8,
+        "Patch": 0
+    },
+    "groups": [
+        {
+            "name": "testSelection",
+            "displayName": "Test selection",
+            "isExpanded": true
+        },
+        {
+            "name": "advanced",
+            "displayName": "Advanced",
+            "isExpanded": false
+        }
+    ],
+    "instanceNameFormat": "Publish Results w Attch: $(testSuite)",
+    "minimumAgentVersion": "2.103.0",
+    "inputs": [
+        {
+            "name": "targetType",
+            "type": "radio",
+            "label": "Test Case Mapping Type",
+            "required": false,
+            "defaultValue": "filePath",
+            "helpMarkDown": "Target Test Case JSON Mapping type: File Path or Inline",
+            "options": {
+                "filePath": "File Path",
+                "inline": "Inline"
+            }
+        },
+        {
+            "name": "jsonTestCaseMappingFile",
+            "type": "string",
+            "label": "Test Case Mapping File",
+            "defaultValue": "",
+            "required": true,
+            "helpMarkDown": "Target Test Case JSON Mapping File Path",
+            "visibleRule": "targetType = filePath"
+        },
+        {
+            "name": "inlineJsonTestCaseMapping",
+            "type": "multiLine",
+            "label": "Test Case Mapping",
+            "visibleRule": "targetType = inline",
+            "required": true,
+            "defaultValue": "[\t{\n\t\"className\": \"HelloWorldJava.Demo.HelloWorldJunitTest\",\n\t\"methodName\": \"testTrue\",\n\t\"testCaseId\": 216\n\t}]",
+            "properties": {
+                "resizable": "true",
+                "rows": "10",
+                "maxLength": "5000"
+            },
+            "helpMarkDown": ""
+        },
+        {
+            "name": "testPlan",
+            "type": "pickList",
+            "label": "Test plan",
+            "defaultValue": "",
+            "required": true,
+            "helpMarkDown": "Select a test plan containing test suites with automated test cases.",
+            "groupName": "testSelection",
+            "properties": {
+                "DisableManageLink": "True",
+                "EditableOptions": "True"
+            }
+        },
+        {
+            "name": "testSuite",
+            "type": "pickList",
+            "label": "Test suite",
+            "defaultValue": "",
+            "required": true,
+            "helpMarkDown": "Select one or more test suites containing automated test cases. Test case work items must be associated with an automated test method. [Learn more.](https://go.microsoft.com/fwlink/?linkid=847773",
+            "groupName": "testSelection",
+            "properties": {
+                "MultiSelect": "True",
+                "DisableManageLink": "True",
+                "EditableOptions": "True"
+            }
+        },
+        {
+            "name": "testConfiguration",
+            "type": "pickList",
+            "label": "Test configuration",
+            "defaultValue": "",
+            "required": true,
+            "helpMarkDown": "Select Test Configuration.",
+            "groupName": "testSelection",
+            "properties": {
+                "DisableManageLink": "True",
+                "EditableOptions": "True"
+            }
+        },
+        {
+            "name": "generalAttachments",
+            "type": "multiLine",
+            "label": "General Attachment files",
+            "defaultValue": "**/TestResult-*.html",
+            "required": true,
+            "helpMarkDown": "General Test results files path. Supports multiple lines of minimatch patterns. [More Information](https://go.microsoft.com/fwlink/?LinkId=835764)",
+            "properties": {
+                "rows": "5",
+                "resizable": "true"
+            }
+        }
+    ],
+    "dataSourceBindings": [
+        {
+            "target": "testPlan",
+            "endpointId": "tfs:teamfoundation",
+            "endpointUrl": "{{endpoint.url}}/{{system.teamProject}}/_apis/test/plans?filterActivePlans=true&api-version=3.0-preview.2&$skip={{skip}}&$top=1000",
+            "resultSelector": "jsonpath:$.value[*]",
+            "resultTemplate": "{ \"Value\" : \"{{{id}}}\", \"DisplayValue\" : \"{{{id}}} - {{{name}}}\" }",
+            "callbackContextTemplate": "{\"skip\": \"{{add skip 1000}}\"}",
+            "callbackRequiredTemplate": "{{isEqualNumber result.count 1000}}",
+            "initialContextTemplate": "{\"skip\": \"0\"}"
+        },
+        {
+            "target": "testConfiguration",
+            "endpointId": "tfs:teamfoundation",
+            "endpointUrl": "{{endpoint.url}}/{{system.teamProject}}/_apis/test/configurations?api-version=3.0-preview.1",
+            "resultSelector": "jsonpath:$.value[*]",
+            "resultTemplate": "{ \"Value\" : \"{{{id}}}\", \"DisplayValue\" : \"{{{id}}} - {{{name}}}\" }"
+        },
+        {
+            "target": "testSuite",
+            "endpointId": "tfs:teamfoundation",
+            "endpointUrl": "{{endpoint.url}}/{{system.teamProject}}/_apis/test/plans/{{testPlan}}/suites?$asTreeView=true&api-version=3.0-preview.2",
+            "parameters": {
+                "testPlan": "$(testPlan)"
+            },
+            "resultSelector": "jsonpath:$.value[*]"
+        }
+    ],
+    "execution": {
+        "Node": {
+            "target": "publishjunittestresults.js",
+            "argumentFormat": ""
+        }
+    },
+    "messages": {
+        "GeneratingScript": "Generating script.",
+        "JS_ExitCode": "PowerShell exited with code '%s'.",
+        "JS_FormattedCommand": "Formatted command: %s",
+        "JS_InvalidErrorActionPreference": "Invalid ErrorActionPreference '%s'. The value must be one of: 'Stop', 'Continue', or 'SilentlyContinue'",
+        "JS_InvalidFilePath": "Invalid file path '%s'. A path to a .ps1 file is required.",
+        "JS_Stderr": "PowerShell wrote one or more lines to the standard error stream.",
+        "PS_ExitCode": "PowerShell exited with code '{0}'.",
+        "PS_FormattedCommand": "Formatted command: {0}",
+        "PS_InvalidErrorActionPreference": "Invalid ErrorActionPreference '{0}'. The value must be one of: 'Stop', 'Continue', or 'SilentlyContinue'",
+        "PS_InvalidFilePath": "Invalid file path '{0}'. A path to a .ps1 file is required.",
+        "PS_UnableToDetermineExitCode": "Unexpected exception. Unable to determine the exit code from powershell."
+    }
+}

@@ -1,0 +1,179 @@
+##vso[task.debug]agent.TempDirectory=undefined
+##vso[task.debug]agent.workFolder=undefined
+##vso[task.debug]loading inputs and endpoints
+##vso[task.debug]loading INPUT_INLINEJSONTESTCASEMAPPING
+##vso[task.debug]loading INPUT_TARGETTYPE
+##vso[task.debug]loading INPUT_TESTCONFIGURATION
+##vso[task.debug]loading INPUT_TESTPLAN
+##vso[task.debug]loading INPUT_TESTSUITE
+##vso[task.debug]loaded 5
+##vso[task.debug]Agent.ProxyUrl=undefined
+##vso[task.debug]Agent.CAInfo=undefined
+##vso[task.debug]Agent.ClientCert=undefined
+##vso[task.debug]Agent.SkipCertValidation=undefined
+##vso[task.debug]targetType=inline
+##vso[task.debug]jsonTestCaseMappingFile=undefined
+##vso[task.debug]inlineJsonTestCaseMapping=[{"className": "HelloWorldJava.Demo.HelloWorldJunitTest","methodName": "testTrue","testCaseId": 951}]
+##vso[task.debug]testPlan=899
+##vso[task.debug]testSuite=87,98
+##vso[task.debug]testConfiguration=212
+##vso[task.debug]generalAttachments=undefined
+##vso[task.debug]JUnitTestCase.BatchSize=undefined
+Parsing JSON mapping: [{"className": "HelloWorldJava.Demo.HelloWorldJunitTest","methodName": "testTrue","testCaseId": 951}]
+##vso[task.debug]System.TeamFoundationCollectionUri=https://dev.azure.com/huntleyh
+##vso[task.debug]System.TeamProject=Parts%2520Unlimited-v2
+##vso[task.debug]System.AccessToken=eyJ0eXAiOiJKV1QiLCJhbGciOiJSUzI1NiIsIng1dCI6Im9PdmN6NU1fN3AtSGpJS2xGWHo5M3VfVjBabyJ9.eyJuYW1laWQiOiIxMDg1YWMwNy1jYWNkLTRiMmItOTAxMi01ZWI0OGYzOWY3ZTkiLCJzY3AiOiJhcHBfdG9rZW4iLCJhdWkiOiI1MzE4NjIxNi0yZjc4LTQzMjAtYjk2My1kNDhkNTdlMjVhMTEiLCJzaWQiOiIyMjUwNWM5NC04OGNhLTRjZjUtYTMyMy0yMTJiZjFhZWQ5YWUiLCJpc3MiOiJhcHAudnN0b2tlbi52aXN1YWxzdHVkaW8uY29tIiwiYXVkIjoiYXBwLnZzdG9rZW4udmlzdWFsc3R1ZGlvLmNvbXx2c286ZDlmYWJlMjAtZWJmNS00ZjQ4LTkwNjgtN2QyMGQ5ZGE3OWJiIiwibmJmIjoxNTgxNDUxNDY1LCJleHAiOjE1ODE0NTU2NjV9.bItio-9xFYCgJpxu5TZb2w4VomYY3xFAUDoNWayDqfutdJOhDhIBF6LD0W_0S2YLLlwQ8q44Q3KJsknyfAx1iNHoLFBnUnMYGyeLJOmb2sFmeCPN1hQbqzaSibqYzOaZEBvzwcvvlotYdn6uA3yt1jGjsRJG2q6uJPzp1ufsfKwf9D1govvueE-3zUQDh9pX_dcHuVGNzEHKL-_SnTfr86YPar90ss8ELFWr_mbazZJnFgFoS0sGpdtE4o9TZ_UIsLx2clWekhsUo53mWGZldjtt7TaaSHFckRWdeQrgHGsk60dBYbs_oAE5nLSzjqjXzAxOHbepWnyoRh4_7FGNmA
+Generating test run title.
+##vso[task.debug]BUILD_DEFINITIONNAME=b05acd32-170a-4ec7-893a-5691033644e4
+##vso[task.debug]BUILD_BUILDNUMBER=undefined
+##vso[task.debug]Release.ReleaseUri=undefined
+Creating test run entry.
+200
+{ id: 1000236,
+  name: 'TestRun_b05acd32-170a-4ec7-893a-5691033644e4_undefined',
+  url: 'https://dev.azure.com/huntleyh/Parts%20Unlimited-v2/_apis/test/Runs/1000236',
+  isAutomated: false,
+  owner: 
+   { displayName: null,
+     id: '00000000-0000-0000-0000-000000000000' },
+  project: 
+   { id: 'ea20c8bd-d919-4309-a523-5cb2b3e7d11e',
+     name: 'Parts Unlimited-v2' },
+  state: 'Unspecified',
+  plan: { id: '899' },
+  totalTests: 0,
+  incompleteTests: 0,
+  notApplicableTests: 0,
+  passedTests: 0,
+  unanalyzedTests: 0,
+  revision: 2,
+  webAccessUrl: 'https://dev.azure.com/huntleyh/Parts%20Unlimited-v2/_TestManagement/Runs?runId=1000236&_a=runCharts' }
+Create test run SUCCESS
+Recieved testRunId: 1000236
+Posting testcase results
+Testcase mappings count: 1
+Start index: [object Object]
+Sending batch of test results.
+Body: [{"testPlan":{"id":899},"testCase":{"id":951},"testPoint":{"id":212},"outcome":"Passed"}]
+
+STDERR: HTTP 35936: call onSocket 0 0
+HTTP 35936: createConnection dev.azure.com:443:::::::: { servername: 'dev.azure.com',
+  _defaultAgent: 
+   Agent {
+     domain: null,
+     _events: { free: [Function] },
+     _eventsCount: 1,
+     _maxListeners: undefined,
+     defaultPort: 443,
+     protocol: 'https:',
+     options: { path: null },
+     requests: {},
+     sockets: { 'dev.azure.com:443::::::::': [] },
+     freeSockets: {},
+     keepAliveMsecs: 1000,
+     keepAlive: false,
+     maxSockets: Infinity,
+     maxFreeSockets: 256,
+     maxCachedSessions: 100,
+     _sessionCache: { map: {}, list: [] } },
+  host: 'dev.azure.com',
+  port: 443,
+  path: null,
+  method: 'POST',
+  headers: 
+   { accept: 'application/json',
+     'content-type': 'application/json; charset=utf-8',
+     'user-agent': 'publish-junit-tests-helper',
+     Authorization: 'Bearer eyJ0eXAiOiJKV1QiLCJhbGciOiJSUzI1NiIsIng1dCI6Im9PdmN6NU1fN3AtSGpJS2xGWHo5M3VfVjBabyJ9.eyJuYW1laWQiOiIxMDg1YWMwNy1jYWNkLTRiMmItOTAxMi01ZWI0OGYzOWY3ZTkiLCJzY3AiOiJhcHBfdG9rZW4iLCJhdWkiOiI1MzE4NjIxNi0yZjc4LTQzMjAtYjk2My1kNDhkNTdlMjVhMTEiLCJzaWQiOiIyMjUwNWM5NC04OGNhLTRjZjUtYTMyMy0yMTJiZjFhZWQ5YWUiLCJpc3MiOiJhcHAudnN0b2tlbi52aXN1YWxzdHVkaW8uY29tIiwiYXVkIjoiYXBwLnZzdG9rZW4udmlzdWFsc3R1ZGlvLmNvbXx2c286ZDlmYWJlMjAtZWJmNS00ZjQ4LTkwNjgtN2QyMGQ5ZGE3OWJiIiwibmJmIjoxNTgxNDUxNDY1LCJleHAiOjE1ODE0NTU2NjV9.bItio-9xFYCgJpxu5TZb2w4VomYY3xFAUDoNWayDqfutdJOhDhIBF6LD0W_0S2YLLlwQ8q44Q3KJsknyfAx1iNHoLFBnUnMYGyeLJOmb2sFmeCPN1hQbqzaSibqYzOaZEBvzwcvvlotYdn6uA3yt1jGjsRJG2q6uJPzp1ufsfKwf9D1govvueE-3zUQDh9pX_dcHuVGNzEHKL-_SnTfr86YPar90ss8ELFWr_mbazZJnFgFoS0sGpdtE4o9TZ_UIsLx2clWekhsUo53mWGZldjtt7TaaSHFckRWdeQrgHGsk60dBYbs_oAE5nLSzjqjXzAxOHbepWnyoRh4_7FGNmA',
+     'X-TFS-FedAuthRedirect': 'Suppress',
+     'Content-Length': 130 },
+  agent: 
+   Agent {
+     domain: null,
+     _events: { free: [Function] },
+     _eventsCount: 1,
+     _maxListeners: undefined,
+     defaultPort: 443,
+     protocol: 'https:',
+     options: { path: null },
+     requests: {},
+     sockets: { 'dev.azure.com:443::::::::': [] },
+     freeSockets: {},
+     keepAliveMsecs: 1000,
+     keepAlive: false,
+     maxSockets: Infinity,
+     maxFreeSockets: 256,
+     maxCachedSessions: 100,
+     _sessionCache: { map: {}, list: [] } },
+  _agentKey: 'dev.azure.com:443::::::::' }
+HTTP 35936: sockets dev.azure.com:443:::::::: 1
+HTTP 35936: write ret = false
+HTTP 35936: outgoing message end.
+HTTP 35936: AGENT incoming response!
+HTTP 35936: AGENT isHeadResponse false
+HTTP 35936: AGENT socket.destroySoon()
+HTTP 35936: call onSocket 1 0
+HTTP 35936: createConnection dev.azure.com:443:::::::: { servername: 'dev.azure.com',
+  _defaultAgent: 
+   Agent {
+     domain: null,
+     _events: { free: [Function] },
+     _eventsCount: 1,
+     _maxListeners: undefined,
+     defaultPort: 443,
+     protocol: 'https:',
+     options: { path: null },
+     requests: {},
+     sockets: { 'dev.azure.com:443::::::::': [Object] },
+     freeSockets: {},
+     keepAliveMsecs: 1000,
+     keepAlive: false,
+     maxSockets: Infinity,
+     maxFreeSockets: 256,
+     maxCachedSessions: 100,
+     _sessionCache: { map: [Object], list: [Object] } },
+  host: 'dev.azure.com',
+  port: 443,
+  path: null,
+  method: 'POST',
+  headers: 
+   { accept: 'application/json',
+     'content-type': 'application/json; charset=utf-8',
+     'user-agent': 'publish-junit-tests-helper',
+     Authorization: 'Bearer eyJ0eXAiOiJKV1QiLCJhbGciOiJSUzI1NiIsIng1dCI6Im9PdmN6NU1fN3AtSGpJS2xGWHo5M3VfVjBabyJ9.eyJuYW1laWQiOiIxMDg1YWMwNy1jYWNkLTRiMmItOTAxMi01ZWI0OGYzOWY3ZTkiLCJzY3AiOiJhcHBfdG9rZW4iLCJhdWkiOiI1MzE4NjIxNi0yZjc4LTQzMjAtYjk2My1kNDhkNTdlMjVhMTEiLCJzaWQiOiIyMjUwNWM5NC04OGNhLTRjZjUtYTMyMy0yMTJiZjFhZWQ5YWUiLCJpc3MiOiJhcHAudnN0b2tlbi52aXN1YWxzdHVkaW8uY29tIiwiYXVkIjoiYXBwLnZzdG9rZW4udmlzdWFsc3R1ZGlvLmNvbXx2c286ZDlmYWJlMjAtZWJmNS00ZjQ4LTkwNjgtN2QyMGQ5ZGE3OWJiIiwibmJmIjoxNTgxNDUxNDY1LCJleHAiOjE1ODE0NTU2NjV9.bItio-9xFYCgJpxu5TZb2w4VomYY3xFAUDoNWayDqfutdJOhDhIBF6LD0W_0S2YLLlwQ8q44Q3KJsknyfAx1iNHoLFBnUnMYGyeLJOmb2sFmeCPN1hQbqzaSibqYzOaZEBvzwcvvlotYdn6uA3yt1jGjsRJG2q6uJPzp1ufsfKwf9D1govvueE-3zUQDh9pX_dcHuVGNzEHKL-_SnTfr86YPar90ss8ELFWr_mbazZJnFgFoS0sGpdtE4o9TZ_UIsLx2clWekhsUo53mWGZldjtt7TaaSHFckRWdeQrgHGsk60dBYbs_oAE5nLSzjqjXzAxOHbepWnyoRh4_7FGNmA',
+     'X-TFS-FedAuthRedirect': 'Suppress',
+     'Content-Length': 107 },
+  agent: 
+   Agent {
+     domain: null,
+     _events: { free: [Function] },
+     _eventsCount: 1,
+     _maxListeners: undefined,
+     defaultPort: 443,
+     protocol: 'https:',
+     options: { path: null },
+     requests: {},
+     sockets: { 'dev.azure.com:443::::::::': [Object] },
+     freeSockets: {},
+     keepAliveMsecs: 1000,
+     keepAlive: false,
+     maxSockets: Infinity,
+     maxFreeSockets: 256,
+     maxCachedSessions: 100,
+     _sessionCache: { map: [Object], list: [Object] } },
+  _agentKey: 'dev.azure.com:443::::::::' }
+HTTP 35936: sockets dev.azure.com:443:::::::: 2
+HTTP 35936: write ret = false
+HTTP 35936: outgoing message end.
+HTTP 35936: CLIENT socket onClose
+HTTP 35936: removeSocket dev.azure.com:443:::::::: writable: false
+HTTP 35936: HTTP socket close
+HTTP 35936: AGENT incoming response!
+HTTP 35936: AGENT isHeadResponse false
+HTTP 35936: AGENT socket.destroySoon()
+(node:35936) UnhandledPromiseRejectionWarning: Unhandled promise rejection (rejection id: 1): Error: Value cannot be null.
+Parameter name: results
+HTTP 35936: CLIENT socket onClose
+HTTP 35936: removeSocket dev.azure.com:443:::::::: writable: false
+HTTP 35936: HTTP socket close
+
