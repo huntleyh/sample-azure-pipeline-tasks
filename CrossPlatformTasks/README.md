@@ -6,7 +6,7 @@ This extension is a demo of an approach running PowerShell scripts cross platfor
 ### Tasks
 This extension has following tasks:
 * [SimplePowerShellTasks] - Runs a powershell script in both Linux and Windows
-
+* [PublishJUnitTestResultsWithAttachments] - Publish test results with attachments tied to Azure Test Plan Test Cases
 ### Prerequisites : 
 - None
 
