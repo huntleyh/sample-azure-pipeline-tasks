@@ -3,7 +3,7 @@ import tr = require('azure-pipelines-task-lib/toolrunner');
 import path = require('path');
 import fs = require('fs');
 import util = require("util");
-import { inputContract } from './inputContract';
+import * as helperContracts from './helperContracts';
 import * as apiContracts from './azdoApiContracts';
 import * as rh from './restApiHelper';
 
@@ -15,7 +15,7 @@ async function run() {
     try {
         tl.setResourcePath(path.join(__dirname, 'task.json'));
 
-        const runSettings = {} as inputContract;
+        const runSettings = {} as helperContracts.inputContract;
 
         runSettings.targetType = tl.getInput('targetType', true) as string;
         runSettings.jsonTestCaseMappingFile = tl.getPathInput('jsonTestCaseMappingFile', (runSettings.targetType == 'filePath') ? true : false) as string;
@@ -55,84 +55,184 @@ async function run() {
 
         if(response != null)
         {
-            testRunId = response.id;
-       
-            console.log(`Recieved testRunId: ${testRunId}`);
+            try
+            {
+                testRunId = response.id;
+        
+                console.log(`Recieved testRunId: ${testRunId}`);
 
-            await uploadTestCaseResults(testRunId, runSettings, helper);
+                let outcome = await uploadTestCaseResults(testRunId, runSettings, helper);
 
-            // TODO: Add logic to upload general attachment
-            
-            console.log('Updating test run with final outcome.')
-            let body: apiContracts.testRunUpdateRequestBody = {} as apiContracts.testRunUpdateRequestBody;
+                // TODO: Add logic to upload general attachment
 
-            body.state = getFinalTestResultsOutcome();
+                console.log('Updating test run with final outcome.')
+                let body: apiContracts.testRunUpdateRequestBody = {} as apiContracts.testRunUpdateRequestBody;
 
-            let res: apiContracts.testRunUpdateResponse = await helper.completeTestRun(testRunId, body);
+                body.state = getFinalTestResultsOutcome(outcome);
 
-            console.log('Exiting task.');
+                console.log('Updating test run status to ' + body.state);
+                await helper.completeTestRun(testRunId, body);
+
+                console.log('Exiting task.');
+            }
+            catch(err)
+            {                
+                let body: apiContracts.testRunUpdateRequestBody = {} as apiContracts.testRunUpdateRequestBody;
+                body.state = "Aborted";
+                await helper.completeTestRun(testRunId, body);
+
+                tl.setResult(tl.TaskResult.Failed, err.message || 'run() failed');
+            }
         }
     }
     catch (err) {
         tl.setResult(tl.TaskResult.Failed, err.message || 'run() failed');
     }
 }
-async function uploadTestCaseResults(testRunId: number, runSettings: inputContract, helper: rh.RestApiHelper)
+async function uploadTestCaseResults(testRunId: number, runSettings: helperContracts.inputContract, helper: rh.RestApiHelper): Promise<helperContracts.TestRunState>
 {
-    var sizeCount: number = 0;
-    var testResults:apiContracts.testCaseResult[] = [];
+    return new Promise<helperContracts.TestRunState>(async (resolve, reject)=> {
+        var sizeCount: number = 0;
+        let finalOutcome: helperContracts.TestRunState = helperContracts.TestRunState.Completed;
 
-    console.log('Posting testcase results');
-    console.log('Testcase mappings count: ' + runSettings.jsonTestCaseMapping.length);
-    
-    console.log('Start index: ' + runSettings.jsonTestCaseMapping[0]);
+        var testResults: apiContracts.testCaseResult[] = [];
+        var testRunExistingResults: apiContracts.testCaseResult[] = await helper.getTestRunResults(testRunId);
 
-    for(var i: number = 0; i < runSettings.jsonTestCaseMapping.length; i++){
-        let entry: any = runSettings.jsonTestCaseMapping[i];            
-        let passed: boolean = getTestOutcome(entry.className, entry.methodName);
-        
-        let outcome: apiContracts.testCaseResult =  {
-            testPlan: {
-                id: runSettings.testPlanId
-            },
-            testCase: {
-                id: parseInt(entry.testCaseId)
-            },
-            //testCaseRevision: 1,
-            testPoint:{
-                id: runSettings.testConfiguration
-            },
-            //priority: 1,
-            outcome: (passed ? "Passed" : "Failed")                
+        //TODO: Index the results to improve performance
+        //var indexedTestRunResults = indexExistingResults(testRunExistingResults);
+
+        console.log('Retrieved ' + testRunExistingResults.length + ' existing results');
+        console.log('Posting testcase results');
+        console.log('Testcase mappings count: ' + runSettings.jsonTestCaseMapping.length);
+
+        for(var i: number = 0; i < runSettings.jsonTestCaseMapping.length; i++){
+            let entry: any = runSettings.jsonTestCaseMapping[i];            
+            console.log("Retrieving the JUnit test result for test case " + entry.testCaseId + " with testSuiteId " + entry.testSuiteId);
+            let testResult: helperContracts.testResult = getJUnitTestResult(entry.className, entry.methodName);
+            console.log("Retrieving existing test run result for test case " + entry.testCaseId + " with testSuiteId " + entry.testSuiteId);
+            let existingRecord: apiContracts.testCaseResult | null = getTargetTestResult(parseInt(entry.testCaseId), parseInt(entry.testSuiteId), testRunExistingResults);
+            //TODO
+            //let existingRecord: apiContracts.testCaseResult = indexedTestRunResults[entry.testCaseId][entry.testSuiteId];
+            
+            /*let outcome: apiContracts.testCaseResult =  {
+                testPlan: {
+                    id: runSettings.testPlanId
+                },
+                testCaseTitle: testResult.testCaseTitle,
+                testCase: {
+                    id: parseInt(entry.testCaseId)
+                },
+                testCaseRevision: 1,
+                testPoint:{
+                    id: runSettings.testConfiguration
+                },
+                priority: 1,
+                outcome: (testResult.outcome ? "Passed" : "Failed")
+            }*/
+
+            if(existingRecord)
+            {
+                let outcome: apiContracts.testCaseResult =  {} as apiContracts.testCaseResult
+                outcome.id = existingRecord.id;
+                outcome.outcome = (testResult.outcome ? "Passed" : "Failed");
+                outcome.state = "Completed";
+
+                testResults.push(outcome);
+            }
+            sizeCount++;
+
+            if(testResults.length > 0 && (i == runSettings.jsonTestCaseMapping.length - 1 || sizeCount >= runSettings.apiBatchSize))
+            {
+                console.log('Sending batch of test results.');
+
+                let response: apiContracts.testResultResponse = await helper.updateTestResults(testRunId, testResults);
+
+                if(response == null)
+                {
+                    throw new Error('Failed to add test results');
+                }
+
+                sizeCount = 0;
+                testResults = [];
+            }        
         }
 
-        testResults.push(outcome);
-        sizeCount++;
-
-        if(i == runSettings.jsonTestCaseMapping.length - 1 || sizeCount >= runSettings.apiBatchSize)
-        {
-            console.log('Sending batch of test results.');
-
-            let response: apiContracts.testResultResponse = await helper.addTestResults(testRunId, testResults);
-
-            if(response == null)
-            {
-                throw new Error('Failed to add test results');
-            }
-
-            sizeCount = 0;
-            testResults = [];
-        }        
-    }
+        resolve(finalOutcome);
+    });
 }
-function getTestOutcome(className: string, methodName: string): boolean
+function getTargetTestResult(testCaseId: number, testSuiteId: number, existingTestResults: apiContracts.testCaseResult[]): apiContracts.testCaseResult | null{
+    for(var i: number = 0; i < existingTestResults.length; i++)
+    {
+        console.log("Checking entry with " + existingTestResults[i].testCase.id  + " suite id " + existingTestResults[i].testSuite.id);
+        if(existingTestResults[i].testCase.id == testCaseId && existingTestResults[i].testSuite.id == testSuiteId)
+        {
+            console.log("Found matching test result for test case " + testCaseId + " and suite " + testSuiteId);
+            return existingTestResults[i];
+        }
+    }
+    console.log("No matching test result found for testCaseId" + testCaseId + "/ testSuiteId " + testSuiteId + ".\n Please check the specified testCaseId and testSuiteId in your JSON mapping");
+    return null;
+}
+/**
+ * Index the collection of test case results to minimize time spent iterating over the list for each test case
+ * @param existingTestResults 
+ */
+function indexExistingResults(existingTestResults: apiContracts.testCaseResult[]): { [id: number] : { [id:number] : apiContracts.testCaseResult }; }{
+    var indexedTestCaseResults: { [id: number] : { [id:number] : apiContracts.testCaseResult }; } = {};
+
+    console.log("Indexing test case results");
+    for(var i: number = 0; i < existingTestResults.length; i++)
+    {
+        let entry = existingTestResults[i];
+
+        console.log("Checking for entry test case id: " + entry.testCase.id);
+        if(!indexedTestCaseResults[entry.testCase.id])
+        {
+            try
+            {
+                console.log("Test case id: " + entry.testCase.id + " does not exist. Creating new entry.");
+                indexedTestCaseResults[entry.testCase.id] =  [];
+            }
+            catch(error)
+            {
+                console.log(error);
+            }
+        }
+
+        console.log("Assigning entry to the test suite id: " + entry.testSuite.id);
+        indexedTestCaseResults[entry.testCase.id][entry.testSuite.id] = entry;
+    }
+    console.log("Returning indexed results");
+    return indexedTestCaseResults;
+}
+
+function getJUnitTestResult(className: string, methodName: string): helperContracts.testResult
 {
     // TODO: Add logic to retrieve the test outcome from the available JUnit test results
-    return true;
+    let result: helperContracts.testResult = {} as helperContracts.testResult;
+
+    result.testCaseTitle = "Login to the app";
+    result.outcome = "Passed";
+
+    return result;
 }
-function getFinalTestResultsOutcome(): string
+function getFinalTestResultsOutcome(outcome: helperContracts.TestRunState): string
 {
-    return "Aborted";
+    switch(outcome)
+    {
+        case helperContracts.TestRunState.Aborted:
+            return "Aborted";
+        case helperContracts.TestRunState.Completed:
+            return "Completed";
+        case helperContracts.TestRunState.InProgress:
+            return "InProgress";
+        case helperContracts.TestRunState.NotStarted:
+            return "NotStarted";
+        case helperContracts.TestRunState.Waiting:
+            return "Waiting";
+        default:
+            return "Aborted";
+    }
 }
 function getTestRunTitle(): string
 {

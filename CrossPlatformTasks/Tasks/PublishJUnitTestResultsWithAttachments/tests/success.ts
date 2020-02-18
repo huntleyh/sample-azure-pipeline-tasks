@@ -7,7 +7,7 @@ let tmr: tmrm.TaskMockRunner = new tmrm.TaskMockRunner(taskPath);
 
 tmr.setInput('targetType', 'inline');
 tmr.setInput('jsonTestCaseMappingFile', '');
-tmr.setInput('inlineJsonTestCaseMapping', '[{"className": "HelloWorldJava.Demo.HelloWorldJunitTest","methodName": "testTrue","testCaseId": 951}]');
+tmr.setInput('inlineJsonTestCaseMapping', '[{"className": "HelloWorldJava.Demo.HelloWorldJunitTest","methodName": "testTrue","testCaseId": 951, "testSuiteId": 950}]');
 tmr.setInput('testPlan', '899');
 tmr.setInput('testSuite', '87,98');
 tmr.setInput('testConfiguration', '212');

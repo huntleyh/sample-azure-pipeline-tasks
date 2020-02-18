@@ -14,3 +14,18 @@ export interface inputContract
     accessToken: string;
     auth: any
 }
+
+export interface testResult
+{
+    testCaseTitle: string;
+    outcome: string;
+}
+
+export enum TestRunState
+{
+    NotStarted = 0, 
+    InProgress = 1, 
+    Completed = 2, 
+    Aborted = 3, 
+    Waiting = 4
+}

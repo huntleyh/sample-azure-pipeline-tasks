@@ -61,7 +61,7 @@
             "label": "Test Case Mapping",
             "visibleRule": "targetType = inline",
             "required": true,
-            "defaultValue": "[\t{\n\t\"className\": \"HelloWorldJava.Demo.HelloWorldJunitTest\",\n\t\"methodName\": \"testTrue\",\n\t\"testCaseId\": 216\n\t}]",
+            "defaultValue": "[\t{\n\t\"className\": \"HelloWorldJava.Demo.HelloWorldJunitTest\",\n\t\"methodName\": \"testTrue\",\n\t\"testSuiteId\": 216\n\t,\n\t\"testCaseId\": 216\n\t}]",
             "properties": {
                 "resizable": "true",
                 "rows": "10",

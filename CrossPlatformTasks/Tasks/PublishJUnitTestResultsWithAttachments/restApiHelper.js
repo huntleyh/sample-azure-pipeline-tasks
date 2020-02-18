@@ -100,13 +100,10 @@ var RestApiHelper = /** @class */ (function () {
             var _this = this;
             return __generator(this, function (_a) {
                 return [2 /*return*/, new Promise(function (resolve, reject) { return __awaiter(_this, void 0, void 0, function () {
-                        var body, restRes;
+                        var restRes;
                         return __generator(this, function (_a) {
                             switch (_a.label) {
-                                case 0:
-                                    body = JSON.stringify(testResults);
-                                    console.log('Body: ' + body);
-                                    return [4 /*yield*/, this._rest.create("_apis/test/Runs/" + testRunId + "/results?api-version=5.1", body)];
+                                case 0: return [4 /*yield*/, this._rest.create('_apis/test/Runs/' + testRunId + '/results?api-version=5.1', testResults)];
                                 case 1:
                                     restRes = _a.sent();
                                     console.log(restRes.statusCode);
@@ -127,6 +124,72 @@ var RestApiHelper = /** @class */ (function () {
         });
     };
     /**
+     * Updates test results to a test run
+     * @param testRunId The Test Run Id to which the test case results will be added
+     * @param testResults An array of test results to be added to the specified [testRunId]
+     */
+    RestApiHelper.prototype.updateTestResults = function (testRunId, testResults) {
+        return __awaiter(this, void 0, void 0, function () {
+            var _this = this;
+            return __generator(this, function (_a) {
+                return [2 /*return*/, new Promise(function (resolve, reject) { return __awaiter(_this, void 0, void 0, function () {
+                        var restRes;
+                        return __generator(this, function (_a) {
+                            switch (_a.label) {
+                                case 0: return [4 /*yield*/, this._rest.update('_apis/test/Runs/' + testRunId + '/results?api-version=5.1', testResults)];
+                                case 1:
+                                    restRes = _a.sent();
+                                    console.log(restRes.statusCode);
+                                    console.log(restRes.result);
+                                    if (restRes.statusCode == httpm.HttpCodes.OK && restRes.result) {
+                                        console.log('Adding test result SUCCESS');
+                                        resolve(restRes.result);
+                                    }
+                                    else {
+                                        console.log('Adding test result FAILED: ');
+                                        reject(restRes.result);
+                                    }
+                                    return [2 /*return*/];
+                            }
+                        });
+                    }); })];
+            });
+        });
+    };
+    /**
+     * Get a list of test results to a test run
+     * @param testRunId The Test Run Id for which the test results will be retrieved
+     */
+    RestApiHelper.prototype.getTestRunResults = function (testRunId) {
+        return __awaiter(this, void 0, void 0, function () {
+            var _this = this;
+            return __generator(this, function (_a) {
+                return [2 /*return*/, new Promise(function (resolve, reject) { return __awaiter(_this, void 0, void 0, function () {
+                        var restRes;
+                        var _a, _b;
+                        return __generator(this, function (_c) {
+                            switch (_c.label) {
+                                case 0: return [4 /*yield*/, this._rest.get('_apis/test/Runs/' + testRunId + '/results?api-version=5.1')];
+                                case 1:
+                                    restRes = _c.sent();
+                                    console.log(restRes.statusCode);
+                                    console.log((_a = restRes.result) === null || _a === void 0 ? void 0 : _a.value);
+                                    if (restRes.statusCode == httpm.HttpCodes.OK && restRes.result) {
+                                        console.log('Get test run results SUCCESS');
+                                        resolve(restRes.result.value);
+                                    }
+                                    else {
+                                        console.log('Get test run results FAILED: ');
+                                        reject((_b = restRes.result) === null || _b === void 0 ? void 0 : _b.value);
+                                    }
+                                    return [2 /*return*/];
+                            }
+                        });
+                    }); })];
+            });
+        });
+    };
+    /**
      * Update test run by its ID
      * @param testRunId The Test Run Id to be completed
      * @param body Request body to be sent in request.
@@ -135,11 +198,12 @@ var RestApiHelper = /** @class */ (function () {
         return __awaiter(this, void 0, void 0, function () {
             var _this = this;
             return __generator(this, function (_a) {
+                console.log("Completing testrun " + testRunId);
                 return [2 /*return*/, new Promise(function (resolve, reject) { return __awaiter(_this, void 0, void 0, function () {
                         var restRes;
                         return __generator(this, function (_a) {
                             switch (_a.label) {
-                                case 0: return [4 /*yield*/, this._rest.create("_apis/test/Runs/" + testRunId + "?api-version=5.1", body)];
+                                case 0: return [4 /*yield*/, this._rest.create('_apis/test/Runs/' + testRunId + '?api-version=5.1', body)];
                                 case 1:
                                     restRes = _a.sent();
                                     console.log(restRes.statusCode);

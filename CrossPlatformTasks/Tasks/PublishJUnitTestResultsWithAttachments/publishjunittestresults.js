@@ -47,17 +47,18 @@ var tl = require("azure-pipelines-task-lib/task");
 var path = require("path");
 var fs = require("fs");
 var util = require("util");
+var helperContracts = __importStar(require("./helperContracts"));
 var rh = __importStar(require("./restApiHelper"));
 require('util.promisify').shim();
 var request = require('request');
 require('request').debug = true;
 function run() {
     return __awaiter(this, void 0, void 0, function () {
-        var runSettings, jsonMapping, baseUrl, helper, reqBody, testRunId, response, body, res, err_1;
+        var runSettings, jsonMapping, baseUrl, helper, reqBody, testRunId, response, outcome, body, err_1, body, err_2;
         return __generator(this, function (_a) {
             switch (_a.label) {
                 case 0:
-                    _a.trys.push([0, 5, , 6]);
+                    _a.trys.push([0, 8, , 9]);
                     tl.setResourcePath(path.join(__dirname, 'task.json'));
                     runSettings = {};
                     runSettings.targetType = tl.getInput('targetType', true);
@@ -89,100 +90,179 @@ function run() {
                     return [4 /*yield*/, helper.createTestRun(reqBody)];
                 case 1:
                     response = _a.sent();
-                    if (!(response != null)) return [3 /*break*/, 4];
+                    if (!(response != null)) return [3 /*break*/, 7];
+                    _a.label = 2;
+                case 2:
+                    _a.trys.push([2, 5, , 7]);
                     testRunId = response.id;
                     console.log("Recieved testRunId: " + testRunId);
                     return [4 /*yield*/, uploadTestCaseResults(testRunId, runSettings, helper)];
-                case 2:
-                    _a.sent();
+                case 3:
+                    outcome = _a.sent();
+                    // TODO: Add logic to upload general attachment
                     console.log('Updating test run with final outcome.');
                     body = {};
-                    body.state = getFinalTestResultsOutcome();
+                    body.state = getFinalTestResultsOutcome(outcome);
+                    console.log('Updating test run status to ' + body.state);
                     return [4 /*yield*/, helper.completeTestRun(testRunId, body)];
-                case 3:
-                    res = _a.sent();
+                case 4:
+                    _a.sent();
                     console.log('Exiting task.');
-                    _a.label = 4;
-                case 4: return [3 /*break*/, 6];
+                    return [3 /*break*/, 7];
                 case 5:
                     err_1 = _a.sent();
+                    body = {};
+                    body.state = "Aborted";
+                    return [4 /*yield*/, helper.completeTestRun(testRunId, body)];
+                case 6:
+                    _a.sent();
                     tl.setResult(tl.TaskResult.Failed, err_1.message || 'run() failed');
-                    return [3 /*break*/, 6];
-                case 6: return [2 /*return*/];
+                    return [3 /*break*/, 7];
+                case 7: return [3 /*break*/, 9];
+                case 8:
+                    err_2 = _a.sent();
+                    tl.setResult(tl.TaskResult.Failed, err_2.message || 'run() failed');
+                    return [3 /*break*/, 9];
+                case 9: return [2 /*return*/];
             }
         });
     });
 }
 function uploadTestCaseResults(testRunId, runSettings, helper) {
     return __awaiter(this, void 0, void 0, function () {
-        var sizeCount, testResults, i, entry, passed, outcome, response;
+        var _this = this;
         return __generator(this, function (_a) {
-            switch (_a.label) {
-                case 0:
-                    sizeCount = 0;
-                    testResults = [];
-                    console.log('Posting testcase results');
-                    console.log('Testcase mappings count: ' + runSettings.jsonTestCaseMapping.length);
-                    console.log('Start index: ' + runSettings.jsonTestCaseMapping[0]);
-                    i = 0;
-                    _a.label = 1;
-                case 1:
-                    if (!(i < runSettings.jsonTestCaseMapping.length)) return [3 /*break*/, 4];
-                    entry = runSettings.jsonTestCaseMapping[i];
-                    passed = getTestOutcome(entry.className, entry.methodName);
-                    outcome = {
-                        testPlan: {
-                            id: runSettings.testPlanId
-                        },
-                        testCase: {
-                            id: parseInt(entry.testCaseId)
-                        },
-                        //testCaseRevision: 1,
-                        testPoint: {
-                            id: runSettings.testConfiguration
-                        },
-                        //priority: 1,
-                        outcome: (passed ? "Passed" : "Failed")
-                    };
-                    testResults.push(outcome);
-                    sizeCount++;
-                    if (!(i == runSettings.jsonTestCaseMapping.length - 1 || sizeCount >= runSettings.apiBatchSize)) return [3 /*break*/, 3];
-                    console.log('Sending batch of test results.');
-                    return [4 /*yield*/, helper.addTestResults(testRunId, testResults)];
-                case 2:
-                    response = _a.sent();
-                    if (response == null) {
-                        throw new Error('Failed to add test results');
-                    }
-                    /*
-                    await request.post({uri: uri, auth: runSettings.auth, json: true, body: JSON.stringify(testResults)},
-                        function (error: any, response: { statusCode: number; }, body: any) {
-                            console.log('body:', body);
-        
-                            if(response.statusCode != 200)
-                            {
-                                tl.setResult(tl.TaskResult.Failed, error.message || 'Update test result failed', true);
-                                return;
-                            }
+            return [2 /*return*/, new Promise(function (resolve, reject) { return __awaiter(_this, void 0, void 0, function () {
+                    var sizeCount, finalOutcome, testResults, testRunExistingResults, i, entry, testResult, existingRecord, outcome, response;
+                    return __generator(this, function (_a) {
+                        switch (_a.label) {
+                            case 0:
+                                sizeCount = 0;
+                                finalOutcome = helperContracts.TestRunState.Completed;
+                                testResults = [];
+                                return [4 /*yield*/, helper.getTestRunResults(testRunId)];
+                            case 1:
+                                testRunExistingResults = _a.sent();
+                                //TODO: Index the results to improve performance
+                                //var indexedTestRunResults = indexExistingResults(testRunExistingResults);
+                                console.log('Retrieved ' + testRunExistingResults.length + ' existing results');
+                                console.log('Posting testcase results');
+                                console.log('Testcase mappings count: ' + runSettings.jsonTestCaseMapping.length);
+                                i = 0;
+                                _a.label = 2;
+                            case 2:
+                                if (!(i < runSettings.jsonTestCaseMapping.length)) return [3 /*break*/, 5];
+                                entry = runSettings.jsonTestCaseMapping[i];
+                                console.log("Retrieving the JUnit test result for test case " + entry.testCaseId + " with testSuiteId " + entry.testSuiteId);
+                                testResult = getJUnitTestResult(entry.className, entry.methodName);
+                                console.log("Retrieving existing test run result for test case " + entry.testCaseId + " with testSuiteId " + entry.testSuiteId);
+                                existingRecord = getTargetTestResult(parseInt(entry.testCaseId), parseInt(entry.testSuiteId), testRunExistingResults);
+                                //TODO
+                                //let existingRecord: apiContracts.testCaseResult = indexedTestRunResults[entry.testCaseId][entry.testSuiteId];
+                                /*let outcome: apiContracts.testCaseResult =  {
+                                    testPlan: {
+                                        id: runSettings.testPlanId
+                                    },
+                                    testCaseTitle: testResult.testCaseTitle,
+                                    testCase: {
+                                        id: parseInt(entry.testCaseId)
+                                    },
+                                    testCaseRevision: 1,
+                                    testPoint:{
+                                        id: runSettings.testConfiguration
+                                    },
+                                    priority: 1,
+                                    outcome: (testResult.outcome ? "Passed" : "Failed")
+                                }*/
+                                if (existingRecord) {
+                                    outcome = {};
+                                    outcome.id = existingRecord.id;
+                                    outcome.outcome = (testResult.outcome ? "Passed" : "Failed");
+                                    outcome.state = "Completed";
+                                    testResults.push(outcome);
+                                }
+                                sizeCount++;
+                                if (!(testResults.length > 0 && (i == runSettings.jsonTestCaseMapping.length - 1 || sizeCount >= runSettings.apiBatchSize))) return [3 /*break*/, 4];
+                                console.log('Sending batch of test results.');
+                                return [4 /*yield*/, helper.updateTestResults(testRunId, testResults)];
+                            case 3:
+                                response = _a.sent();
+                                if (response == null) {
+                                    throw new Error('Failed to add test results');
+                                }
+                                sizeCount = 0;
+                                testResults = [];
+                                _a.label = 4;
+                            case 4:
+                                i++;
+                                return [3 /*break*/, 2];
+                            case 5:
+                                resolve(finalOutcome);
+                                return [2 /*return*/];
                         }
-                    );
-                    */
-                    sizeCount = 0;
-                    testResults = [];
-                    _a.label = 3;
-                case 3:
-                    i++;
-                    return [3 /*break*/, 1];
-                case 4: return [2 /*return*/];
-            }
+                    });
+                }); })];
         });
     });
 }
-function getTestOutcome(className, methodName) {
-    return true;
+function getTargetTestResult(testCaseId, testSuiteId, existingTestResults) {
+    for (var i = 0; i < existingTestResults.length; i++) {
+        console.log("Checking entry with " + existingTestResults[i].testCase.id + " suite id " + existingTestResults[i].testSuite.id);
+        if (existingTestResults[i].testCase.id == testCaseId && existingTestResults[i].testSuite.id == testSuiteId) {
+            console.log("Found matching test result for test case " + testCaseId + " and suite " + testSuiteId);
+            return existingTestResults[i];
+        }
+    }
+    console.log("No matching test result found for testCaseId" + testCaseId + "/ testSuiteId " + testSuiteId + ".\n Please check the specified testCaseId and testSuiteId in your JSON mapping");
+    return null;
 }
-function getFinalTestResultsOutcome() {
-    return "Aborted";
+/**
+ * Index the collection of test case results to minimize time spent iterating over the list for each test case
+ * @param existingTestResults
+ */
+function indexExistingResults(existingTestResults) {
+    var indexedTestCaseResults = {};
+    console.log("Indexing test case results");
+    for (var i = 0; i < existingTestResults.length; i++) {
+        var entry = existingTestResults[i];
+        console.log("Checking for entry test case id: " + entry.testCase.id);
+        if (!indexedTestCaseResults[entry.testCase.id]) {
+            try {
+                console.log("Test case id: " + entry.testCase.id + " does not exist. Creating new entry.");
+                indexedTestCaseResults[entry.testCase.id] = [];
+            }
+            catch (error) {
+                console.log(error);
+            }
+        }
+        console.log("Assigning entry to the test suite id: " + entry.testSuite.id);
+        indexedTestCaseResults[entry.testCase.id][entry.testSuite.id] = entry;
+    }
+    console.log("Returning indexed results");
+    return indexedTestCaseResults;
+}
+function getJUnitTestResult(className, methodName) {
+    // TODO: Add logic to retrieve the test outcome from the available JUnit test results
+    var result = {};
+    result.testCaseTitle = "Login to the app";
+    result.outcome = "Passed";
+    return result;
+}
+function getFinalTestResultsOutcome(outcome) {
+    switch (outcome) {
+        case helperContracts.TestRunState.Aborted:
+            return "Aborted";
+        case helperContracts.TestRunState.Completed:
+            return "Completed";
+        case helperContracts.TestRunState.InProgress:
+            return "InProgress";
+        case helperContracts.TestRunState.NotStarted:
+            return "NotStarted";
+        case helperContracts.TestRunState.Waiting:
+            return "Waiting";
+        default:
+            return "Aborted";
+    }
 }
 function getTestRunTitle() {
     console.log('Generating test run title.');

@@ -40,16 +40,27 @@ export interface testResultResponse{
 }
 
 export interface testCaseResult{
+    id: number;
     testPlan: {
         id: number
     };
+    testCaseTitle: string;
     testCase: {
         id: number
     };
-    //testCaseRevision: 1,
+    testCaseRevision: number,
     testPoint:{
         id: number
     };
-    //priority: 1,
-    outcome: string    
+    testSuite:{
+        id: number
+    }
+    priority: number,
+    outcome: string,
+    state: string
+}
+
+export interface testCaseResultResponse{
+    count: number;
+    value: testCaseResult[]
 }
