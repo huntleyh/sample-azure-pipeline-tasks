@@ -25,7 +25,8 @@ async function run() {
         runSettings.testSuiteStrings = tl.getDelimitedInput('testSuite', ',', true);
         runSettings.testConfiguration = parseInt(`${tl.getInput('testConfiguration', true)}`);
         runSettings.generalAttachments = tl.getDelimitedInput('generalAttachments', '\n', false);
-        runSettings.sourceFolder = getStringValue(tl.getPathInput('sourceFolder', true, true));
+        let folderPath = tl.getPathInput('sourceFolder', true, false);
+        runSettings.sourceFolder = getStringValue(folderPath);
         runSettings.apiBatchSize = (tl.getVariable('JUnitTestCase.BatchSize') && tl.getVariable('JUnitTestCase.BatchSize') != '' ? parseInt(`${tl.getVariable('JUnitTestCase.BatchSize')}`) : 20);
         
         let jsonMapping: string = getTestCaseJsonMapping(`${runSettings.targetType}`, `${runSettings.jsonTestCaseMappingFile}`, `${runSettings.inlineJsonTestCaseMapping}`);

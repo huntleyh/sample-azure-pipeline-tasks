@@ -5,13 +5,15 @@ import path = require('path');
 let taskPath = path.join(__dirname, '..', 'publishjunittestresults.js');
 let tmr: tmrm.TaskMockRunner = new tmrm.TaskMockRunner(taskPath);
 
+console.log("Starting test");
 tmr.setInput('targetType', 'inline');
 tmr.setInput('jsonTestCaseMappingFile', '');
 tmr.setInput('inlineJsonTestCaseMapping', '[{"className": "HelloWorldJava.Demo.HelloWorldJunitTest","methodName": "testTrue","testCaseId": 951, "testSuiteId": 950}]');
 tmr.setInput('testPlan', '899');
 tmr.setInput('testSuite', '87,98');
 tmr.setInput('testConfiguration', '212');
-tmr.setInput('generalAttachments', '');
+tmr.setInput('generalAttachments', '**/*.html\n**/*.txt\n**/*.jpg');
+tmr.setInput('sourceFolder', 'C:\\GitHubRepos\\simplefiles\\');
 
 tmr.run();
 

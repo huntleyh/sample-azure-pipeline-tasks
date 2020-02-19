@@ -54,7 +54,7 @@ var request = require('request');
 require('request').debug = true;
 function run() {
     return __awaiter(this, void 0, void 0, function () {
-        var runSettings, jsonMapping, baseUrl, helper, reqBody, testRunId, response, outcome, body, err_1, body, err_2;
+        var runSettings, folderPath, jsonMapping, baseUrl, helper, reqBody, testRunId, response, outcome, body, err_1, body, err_2;
         return __generator(this, function (_a) {
             switch (_a.label) {
                 case 0:
@@ -68,7 +68,8 @@ function run() {
                     runSettings.testSuiteStrings = tl.getDelimitedInput('testSuite', ',', true);
                     runSettings.testConfiguration = parseInt("" + tl.getInput('testConfiguration', true));
                     runSettings.generalAttachments = tl.getDelimitedInput('generalAttachments', '\n', false);
-                    runSettings.sourceFolder = getStringValue(tl.getPathInput('sourceFolder', true, true));
+                    folderPath = tl.getPathInput('sourceFolder', true, false);
+                    runSettings.sourceFolder = getStringValue(folderPath);
                     runSettings.apiBatchSize = (tl.getVariable('JUnitTestCase.BatchSize') && tl.getVariable('JUnitTestCase.BatchSize') != '' ? parseInt("" + tl.getVariable('JUnitTestCase.BatchSize')) : 20);
                     jsonMapping = getTestCaseJsonMapping("" + runSettings.targetType, "" + runSettings.jsonTestCaseMappingFile, "" + runSettings.inlineJsonTestCaseMapping);
                     console.log("Parsing JSON mapping: " + jsonMapping);

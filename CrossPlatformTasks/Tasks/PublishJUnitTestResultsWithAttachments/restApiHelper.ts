@@ -44,7 +44,10 @@ export class RestApiHelper {
                 else
                 {
                     console.log('Create test run FAILED: ');
-                    reject(restRes.result);
+                    if(!restRes.result)
+                        reject("Create test run failed: " + restRes.statusCode);
+                    else
+                        reject(restRes.result);
                 }
             }
             catch(exception)

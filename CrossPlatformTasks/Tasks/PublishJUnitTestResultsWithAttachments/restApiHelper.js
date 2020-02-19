@@ -83,7 +83,10 @@ var RestApiHelper = /** @class */ (function () {
                                     }
                                     else {
                                         console.log('Create test run FAILED: ');
-                                        reject(restRes.result);
+                                        if (!restRes.result)
+                                            reject("Create test run failed: " + restRes.statusCode);
+                                        else
+                                            reject(restRes.result);
                                     }
                                     return [3 /*break*/, 3];
                                 case 2:
