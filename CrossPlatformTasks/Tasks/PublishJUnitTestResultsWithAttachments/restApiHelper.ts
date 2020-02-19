@@ -188,4 +188,34 @@ export class RestApiHelper {
             }
         });
     }
+
+    async createTestRunAttachment(testRunId: number, body: contracts.testRunAttachmentRequestBody): Promise<contracts.testRunAttachmentReference> {
+        console.log("Completing testrun " + testRunId);
+        return new Promise<contracts.testRunAttachmentReference>(async (resolve, reject)=> {
+            try
+            {
+                let restRes: rc.IRestResponse<contracts.testRunAttachmentReference> = 
+                                    await this._rest.update<contracts.testRunAttachmentReference>('_apis/test/Runs/'+testRunId+'/attachments?api-version=5.1-preview.1', body);
+
+                console.log(restRes.statusCode);
+                console.log(restRes.result);
+
+                if(restRes.statusCode == httpm.HttpCodes.OK && restRes.result)
+                {     
+                    console.log('Created test run attachment SUCCESS');
+                    resolve(restRes.result);
+                }
+                else
+                {
+                    console.log('Created test run attachment FAILED: ');
+                    reject(restRes.result);
+                }
+            }
+            catch(exception)
+            {
+                console.log("Something went wrong creating the test run attachment: " + exception.message);
+                reject(exception.message);
+            }
+        });
+    }
 }

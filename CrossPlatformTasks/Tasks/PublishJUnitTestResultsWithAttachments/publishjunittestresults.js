@@ -58,7 +58,7 @@ function run() {
         return __generator(this, function (_a) {
             switch (_a.label) {
                 case 0:
-                    _a.trys.push([0, 8, , 9]);
+                    _a.trys.push([0, 9, , 10]);
                     tl.setResourcePath(path.join(__dirname, 'task.json'));
                     runSettings = {};
                     runSettings.targetType = tl.getInput('targetType', true);
@@ -67,7 +67,8 @@ function run() {
                     runSettings.testPlanId = parseInt("" + tl.getInput('testPlan', true));
                     runSettings.testSuiteStrings = tl.getDelimitedInput('testSuite', ',', true);
                     runSettings.testConfiguration = parseInt("" + tl.getInput('testConfiguration', true));
-                    runSettings.generalAttachments = tl.getInput('generalAttachments', false);
+                    runSettings.generalAttachments = tl.getDelimitedInput('generalAttachments', '\n', false);
+                    runSettings.sourceFolder = getStringValue(tl.getPathInput('sourceFolder', true, true));
                     runSettings.apiBatchSize = (tl.getVariable('JUnitTestCase.BatchSize') && tl.getVariable('JUnitTestCase.BatchSize') != '' ? parseInt("" + tl.getVariable('JUnitTestCase.BatchSize')) : 20);
                     jsonMapping = getTestCaseJsonMapping("" + runSettings.targetType, "" + runSettings.jsonTestCaseMappingFile, "" + runSettings.inlineJsonTestCaseMapping);
                     console.log("Parsing JSON mapping: " + jsonMapping);
@@ -77,54 +78,128 @@ function run() {
                     runSettings.accessToken = "" + tl.getVariable('System.AccessToken');
                     baseUrl = runSettings.organization + "/" + runSettings.project;
                     helper = new rh.RestApiHelper(baseUrl, runSettings.accessToken);
-                    reqBody = {};
-                    reqBody.name = getTestRunTitle();
-                    reqBody.plan = {
-                        id: runSettings.testPlanId
-                    };
-                    reqBody.pointIds = [
-                        runSettings.testConfiguration
-                    ];
+                    reqBody = getTestRunRequestBody(runSettings);
                     testRunId = -1;
                     console.log('Creating test run entry.');
                     return [4 /*yield*/, helper.createTestRun(reqBody)];
                 case 1:
                     response = _a.sent();
-                    if (!(response != null)) return [3 /*break*/, 7];
+                    if (!(response != null)) return [3 /*break*/, 8];
                     _a.label = 2;
                 case 2:
-                    _a.trys.push([2, 5, , 7]);
+                    _a.trys.push([2, 6, , 8]);
                     testRunId = response.id;
                     console.log("Recieved testRunId: " + testRunId);
                     return [4 /*yield*/, uploadTestCaseResults(testRunId, runSettings, helper)];
                 case 3:
                     outcome = _a.sent();
                     // TODO: Add logic to upload general attachment
+                    return [4 /*yield*/, uploadGeneralAttachments(testRunId, runSettings, helper)];
+                case 4:
+                    // TODO: Add logic to upload general attachment
+                    _a.sent();
                     console.log('Updating test run with final outcome.');
                     body = {};
                     body.state = getFinalTestResultsOutcome(outcome);
                     console.log('Updating test run status to ' + body.state);
                     return [4 /*yield*/, helper.completeTestRun(testRunId, body)];
-                case 4:
+                case 5:
                     _a.sent();
                     console.log('Exiting task.');
-                    return [3 /*break*/, 7];
-                case 5:
+                    return [3 /*break*/, 8];
+                case 6:
                     err_1 = _a.sent();
                     body = {};
                     body.state = "Aborted";
                     return [4 /*yield*/, helper.completeTestRun(testRunId, body)];
-                case 6:
+                case 7:
                     _a.sent();
                     tl.setResult(tl.TaskResult.Failed, err_1.message || 'run() failed');
-                    return [3 /*break*/, 7];
-                case 7: return [3 /*break*/, 9];
-                case 8:
+                    return [3 /*break*/, 8];
+                case 8: return [3 /*break*/, 10];
+                case 9:
                     err_2 = _a.sent();
                     tl.setResult(tl.TaskResult.Failed, err_2.message || 'run() failed');
-                    return [3 /*break*/, 9];
-                case 9: return [2 /*return*/];
+                    return [3 /*break*/, 10];
+                case 10: return [2 /*return*/];
             }
+        });
+    });
+}
+function getStringValue(val) {
+    if (!val)
+        return "";
+    else
+        return val.valueOf();
+}
+/**
+ * Create the request body to be used in creating the new test run
+ * @param settings runSettings for the execution of the task
+ */
+function getTestRunRequestBody(settings) {
+    var body = {};
+    body.name = getTestRunTitle();
+    body.automated = true;
+    body.plan = {
+        id: settings.testPlanId
+    };
+    body.pointIds = [
+        settings.testConfiguration
+    ];
+    return body;
+}
+function uploadGeneralAttachments(testRunId, runSettings, helper) {
+    return __awaiter(this, void 0, void 0, function () {
+        var _this = this;
+        return __generator(this, function (_a) {
+            return [2 /*return*/, new Promise(function (resolve, reject) { return __awaiter(_this, void 0, void 0, function () {
+                    var sourceFolder, allPaths, sourceFolderPattern, matchedPaths, matchedFiles, i, file, request_1, response, err_3;
+                    return __generator(this, function (_a) {
+                        switch (_a.label) {
+                            case 0:
+                                _a.trys.push([0, 6, , 7]);
+                                sourceFolder = path.normalize(runSettings.sourceFolder);
+                                allPaths = tl.find(sourceFolder);
+                                sourceFolderPattern = sourceFolder.replace('[', '[[]');
+                                matchedPaths = tl.match(allPaths, runSettings.generalAttachments, sourceFolderPattern);
+                                matchedFiles = matchedPaths.filter(function (itemPath) { return !tl.stats(itemPath).isDirectory(); });
+                                // copy the files to the target folder
+                                console.log(tl.loc('FoundNFiles', matchedFiles.length));
+                                if (!(matchedFiles.length > 0)) return [3 /*break*/, 5];
+                                i = 0;
+                                _a.label = 1;
+                            case 1:
+                                if (!(i < matchedFiles.length)) return [3 /*break*/, 4];
+                                file = matchedFiles[i];
+                                request_1 = {};
+                                request_1.attachmentType = "GeneralAttachment";
+                                request_1.fileName = path.basename(file);
+                                request_1.stream = fs.readFileSync(file, 'utf8');
+                                return [4 /*yield*/, helper.createTestRunAttachment(testRunId, request_1)];
+                            case 2:
+                                response = _a.sent();
+                                if (response == null) {
+                                    throw new Error('Failed to add test results');
+                                }
+                                _a.label = 3;
+                            case 3:
+                                i++;
+                                return [3 /*break*/, 1];
+                            case 4:
+                                ;
+                                _a.label = 5;
+                            case 5:
+                                resolve("success");
+                                return [3 /*break*/, 7];
+                            case 6:
+                                err_3 = _a.sent();
+                                console.log("Unable to update test case results" + err_3.message);
+                                reject(err_3.message);
+                                return [3 /*break*/, 7];
+                            case 7: return [2 /*return*/];
+                        }
+                    });
+                }); })];
         });
     });
 }
@@ -133,10 +208,11 @@ function uploadTestCaseResults(testRunId, runSettings, helper) {
         var _this = this;
         return __generator(this, function (_a) {
             return [2 /*return*/, new Promise(function (resolve, reject) { return __awaiter(_this, void 0, void 0, function () {
-                    var sizeCount, finalOutcome, testResults, testRunExistingResults, i, entry, testResult, existingRecord, outcome, response;
+                    var sizeCount, finalOutcome, testResults, testRunExistingResults, i, entry, testResult, existingRecord, outcome, response, err_4;
                     return __generator(this, function (_a) {
                         switch (_a.label) {
                             case 0:
+                                _a.trys.push([0, 6, , 7]);
                                 sizeCount = 0;
                                 finalOutcome = helperContracts.TestRunState.Completed;
                                 testResults = [];
@@ -199,7 +275,13 @@ function uploadTestCaseResults(testRunId, runSettings, helper) {
                                 return [3 /*break*/, 2];
                             case 5:
                                 resolve(finalOutcome);
-                                return [2 /*return*/];
+                                return [3 /*break*/, 7];
+                            case 6:
+                                err_4 = _a.sent();
+                                console.log("Unable to update test case results" + err_4.message);
+                                reject(err_4.message);
+                                return [3 /*break*/, 7];
+                            case 7: return [2 /*return*/];
                         }
                     });
                 }); })];

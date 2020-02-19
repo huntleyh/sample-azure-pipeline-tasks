@@ -2,7 +2,8 @@ export interface testRunRequestBody{
     plan: { id: number; };
     pointIds: number[];
     name: string;
-    testPlanId: number
+    testPlanId: number;
+    automated: boolean;
 }
 
 export interface testRunUpdateRequestBody{
@@ -63,4 +64,16 @@ export interface testCaseResult{
 export interface testCaseResultResponse{
     count: number;
     value: testCaseResult[]
+}
+
+export interface testRunAttachmentRequestBody{
+    attachmentType: string;
+    comment: string;
+    fileName: string;
+    stream: string;
+}
+
+export interface testRunAttachmentReference{
+    id: number;
+    url: string;
 }

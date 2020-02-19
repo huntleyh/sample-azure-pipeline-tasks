@@ -110,6 +110,14 @@
             }
         },
         {
+            "name": "sourceFolder",
+            "type": "filePath",
+            "label": "Source Folder",
+            "defaultValue": "",
+            "required": false,
+            "helpMarkDown": "The source folder that the general attachment pattern(s) will be run from.  Empty is the root of the repo.  Use [variables](https://go.microsoft.com/fwlink/?LinkID=550988) if files are not in the repo. Example: $(agent.builddirectory)"
+        },
+        {
             "name": "generalAttachments",
             "type": "multiLine",
             "label": "General Attachment files",

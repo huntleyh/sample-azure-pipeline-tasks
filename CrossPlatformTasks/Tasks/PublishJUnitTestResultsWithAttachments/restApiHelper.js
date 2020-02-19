@@ -263,6 +263,43 @@ var RestApiHelper = /** @class */ (function () {
             });
         });
     };
+    RestApiHelper.prototype.createTestRunAttachment = function (testRunId, body) {
+        return __awaiter(this, void 0, void 0, function () {
+            var _this = this;
+            return __generator(this, function (_a) {
+                console.log("Completing testrun " + testRunId);
+                return [2 /*return*/, new Promise(function (resolve, reject) { return __awaiter(_this, void 0, void 0, function () {
+                        var restRes, exception_6;
+                        return __generator(this, function (_a) {
+                            switch (_a.label) {
+                                case 0:
+                                    _a.trys.push([0, 2, , 3]);
+                                    return [4 /*yield*/, this._rest.update('_apis/test/Runs/' + testRunId + '/attachments?api-version=5.1-preview.1', body)];
+                                case 1:
+                                    restRes = _a.sent();
+                                    console.log(restRes.statusCode);
+                                    console.log(restRes.result);
+                                    if (restRes.statusCode == httpm.HttpCodes.OK && restRes.result) {
+                                        console.log('Created test run attachment SUCCESS');
+                                        resolve(restRes.result);
+                                    }
+                                    else {
+                                        console.log('Created test run attachment FAILED: ');
+                                        reject(restRes.result);
+                                    }
+                                    return [3 /*break*/, 3];
+                                case 2:
+                                    exception_6 = _a.sent();
+                                    console.log("Something went wrong creating the test run attachment: " + exception_6.message);
+                                    reject(exception_6.message);
+                                    return [3 /*break*/, 3];
+                                case 3: return [2 /*return*/];
+                            }
+                        });
+                    }); })];
+            });
+        });
+    };
     return RestApiHelper;
 }());
 exports.RestApiHelper = RestApiHelper;

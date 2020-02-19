@@ -6,7 +6,8 @@ export interface inputContract
     testPlanId: number;
     testSuiteStrings: string[];
     testConfiguration: number;
-    generalAttachments: string;
+    generalAttachments: string[];
+    sourceFolder: string;
     apiBatchSize: number;
     jsonTestCaseMapping: any;
     organization: string;
