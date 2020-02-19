@@ -157,6 +157,7 @@ function uploadTestCaseResults(testRunId, runSettings, helper) {
                                 testResult = getJUnitTestResult(entry.className, entry.methodName);
                                 console.log("Retrieving existing test run result for test case " + entry.testCaseId + " with testSuiteId " + entry.testSuiteId);
                                 existingRecord = getTargetTestResult(parseInt(entry.testCaseId), parseInt(entry.testSuiteId), testRunExistingResults);
+                                console.log("Retrieved " + existingRecord);
                                 //TODO
                                 //let existingRecord: apiContracts.testCaseResult = indexedTestRunResults[entry.testCaseId][entry.testSuiteId];
                                 /*let outcome: apiContracts.testCaseResult =  {
@@ -206,15 +207,22 @@ function uploadTestCaseResults(testRunId, runSettings, helper) {
     });
 }
 function getTargetTestResult(testCaseId, testSuiteId, existingTestResults) {
-    for (var i = 0; i < existingTestResults.length; i++) {
-        console.log("Checking entry with " + existingTestResults[i].testCase.id + " suite id " + existingTestResults[i].testSuite.id);
-        if (existingTestResults[i].testCase.id == testCaseId && existingTestResults[i].testSuite.id == testSuiteId) {
+    var _a, _b;
+    console.log("Recieved test case: " + testCaseId + " and suite: " + testSuiteId + " with existing results: " + existingTestResults.length);
+    var emptyResult = {};
+    for (var index = 0; index < existingTestResults.length; index++) {
+        console.log("inside loop");
+        var entry = existingTestResults[index];
+        console.log("Entry is " + entry);
+        console.log("TestCase is " + entry.testCase);
+        console.log("Checking entry with " + existingTestResults[index].testCase.id + " suite id " + ((_b = (_a = existingTestResults[index]) === null || _a === void 0 ? void 0 : _a.testSuite) === null || _b === void 0 ? void 0 : _b.id));
+        if (existingTestResults[index].testCase.id == testCaseId && (!existingTestResults[index].testSuite || (existingTestResults[index].testSuite && existingTestResults[index].testSuite.id == testSuiteId))) {
             console.log("Found matching test result for test case " + testCaseId + " and suite " + testSuiteId);
-            return existingTestResults[i];
+            return existingTestResults[index];
         }
     }
     console.log("No matching test result found for testCaseId" + testCaseId + "/ testSuiteId " + testSuiteId + ".\n Please check the specified testCaseId and testSuiteId in your JSON mapping");
-    return null;
+    return emptyResult;
 }
 /**
  * Index the collection of test case results to minimize time spent iterating over the list for each test case
@@ -307,3 +315,4 @@ function getTestCaseJsonMapping(targetType, mappingFile, inlineJson) {
     return jsonMapping;
 }
 run();
+//# sourceMappingURL=publishjunittestresults.js.map

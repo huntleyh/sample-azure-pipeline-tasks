@@ -28,21 +28,29 @@ export class RestApiHelper {
     async createTestRun(reqBody: contracts.testRunRequestBody) : Promise<contracts.testRunResponse> {
 
         return new Promise<contracts.testRunResponse>(async (resolve, reject)=> {
-            let restRes: rc.IRestResponse<contracts.testRunResponse> = 
-                                await this._rest.create<contracts.testRunResponse>('_apis/test/runs?api-version=5.1', reqBody);
-
-            console.log(restRes.statusCode);
-            console.log(restRes.result);
-
-            if(restRes.statusCode == httpm.HttpCodes.OK && restRes.result)
-            {     
-                console.log('Create test run SUCCESS');
-                resolve(restRes.result);
-            }
-            else
+            try
             {
-                console.log('Create test run FAILED: ');
-                reject(restRes.result);
+                let restRes: rc.IRestResponse<contracts.testRunResponse> = 
+                                    await this._rest.create<contracts.testRunResponse>('_apis/test/runs?api-version=5.1', reqBody);
+
+                console.log(restRes.statusCode);
+                console.log(restRes.result);
+
+                if(restRes.statusCode == httpm.HttpCodes.OK && restRes.result)
+                {     
+                    console.log('Create test run SUCCESS');
+                    resolve(restRes.result);
+                }
+                else
+                {
+                    console.log('Create test run FAILED: ');
+                    reject(restRes.result);
+                }
+            }
+            catch(exception)
+            {
+                console.log("Something went wrong creating the new test run: " + exception.message);
+                reject(exception.message);
             }
         });
     }
@@ -54,21 +62,29 @@ export class RestApiHelper {
     async addTestResults(testRunId: number, testResults: contracts.testCaseResult[]) : Promise<contracts.testResultResponse> {
         return new Promise<contracts.testResultResponse>(async (resolve, reject)=> {
 
-            let restRes: rc.IRestResponse<contracts.testResultResponse> = 
-                                await this._rest.create<contracts.testResultResponse>('_apis/test/Runs/'+testRunId+'/results?api-version=5.1', testResults);
-
-            console.log(restRes.statusCode);
-            console.log(restRes.result);
-
-            if(restRes.statusCode == httpm.HttpCodes.OK && restRes.result)
-            {     
-                console.log('Adding test result SUCCESS');
-                resolve(restRes.result);
-            }
-            else
+            try
             {
-                console.log('Adding test result FAILED: ');
-                reject(restRes.result);
+                let restRes: rc.IRestResponse<contracts.testResultResponse> = 
+                                    await this._rest.create<contracts.testResultResponse>('_apis/test/Runs/'+testRunId+'/results?api-version=5.1', testResults);
+
+                console.log(restRes.statusCode);
+                console.log(restRes.result);
+
+                if(restRes.statusCode == httpm.HttpCodes.OK && restRes.result)
+                {     
+                    console.log('Adding test result SUCCESS');
+                    resolve(restRes.result);
+                }
+                else
+                {
+                    console.log('Adding test result FAILED: ');
+                    reject(restRes.result);
+                }
+            }
+            catch(exception)
+            {
+                console.log("Something went wrong adding the test results: " + exception.message);
+                reject(exception);
             }
         });
     }
@@ -80,21 +96,29 @@ export class RestApiHelper {
     async updateTestResults(testRunId: number, testResults: contracts.testCaseResult[]) : Promise<contracts.testResultResponse> {
         return new Promise<contracts.testResultResponse>(async (resolve, reject)=> {
 
-            let restRes: rc.IRestResponse<contracts.testResultResponse> = 
-                                await this._rest.update<contracts.testResultResponse>('_apis/test/Runs/'+testRunId+'/results?api-version=5.1', testResults);
-
-            console.log(restRes.statusCode);
-            console.log(restRes.result);
-
-            if(restRes.statusCode == httpm.HttpCodes.OK && restRes.result)
-            {     
-                console.log('Adding test result SUCCESS');
-                resolve(restRes.result);
-            }
-            else
+            try
             {
-                console.log('Adding test result FAILED: ');
-                reject(restRes.result);
+                let restRes: rc.IRestResponse<contracts.testResultResponse> = 
+                                    await this._rest.update<contracts.testResultResponse>('_apis/test/Runs/'+testRunId+'/results?api-version=5.1', testResults);
+
+                console.log(restRes.statusCode);
+                console.log(restRes.result);
+
+                if(restRes.statusCode == httpm.HttpCodes.OK && restRes.result)
+                {     
+                    console.log('Adding test result SUCCESS');
+                    resolve(restRes.result);
+                }
+                else
+                {
+                    console.log('Adding test result FAILED: ');
+                    reject(restRes.result);
+                }
+            }
+            catch(exception)
+            {
+                console.log("Something went wrong updating the test results");
+                reject(exception.message);
             }
         });
     }
@@ -104,7 +128,8 @@ export class RestApiHelper {
      */
     async getTestRunResults(testRunId: number) : Promise<contracts.testCaseResult[]> {
         return new Promise<contracts.testCaseResult[]>(async (resolve, reject)=> {
-
+            try
+            {
             let restRes: rc.IRestResponse<contracts.testCaseResultResponse> = 
                                 await this._rest.get<contracts.testCaseResultResponse>('_apis/test/Runs/'+testRunId+'/results?api-version=5.1');
 
@@ -121,6 +146,12 @@ export class RestApiHelper {
                 console.log('Get test run results FAILED: ');
                 reject(restRes.result?.value);
             }
+            }
+            catch(exception)
+            {
+                console.log("Something went wrong retrieving the test run results: " + exception.message);
+                reject(exception.message);
+            }
         });
     }
     /**
@@ -131,21 +162,29 @@ export class RestApiHelper {
     async completeTestRun(testRunId: number, body: contracts.testRunUpdateRequestBody): Promise<contracts.testRunUpdateResponse> {
         console.log("Completing testrun " + testRunId);
         return new Promise<contracts.testRunUpdateResponse>(async (resolve, reject)=> {
-            let restRes: rc.IRestResponse<contracts.testRunUpdateResponse> = 
-                                await this._rest.create<contracts.testRunUpdateResponse>('_apis/test/Runs/'+testRunId+'?api-version=5.1', body);
-
-            console.log(restRes.statusCode);
-            console.log(restRes.result);
-
-            if(restRes.statusCode == httpm.HttpCodes.OK && restRes.result)
-            {     
-                console.log('Completing test run SUCCESS');
-                resolve(restRes.result);
-            }
-            else
+            try
             {
-                console.log('Completing test run FAILED: ');
-                reject(restRes.result);
+                let restRes: rc.IRestResponse<contracts.testRunUpdateResponse> = 
+                                    await this._rest.update<contracts.testRunUpdateResponse>('_apis/test/Runs/'+testRunId+'?api-version=5.1', body);
+
+                console.log(restRes.statusCode);
+                console.log(restRes.result);
+
+                if(restRes.statusCode == httpm.HttpCodes.OK && restRes.result)
+                {     
+                    console.log('Completing test run SUCCESS');
+                    resolve(restRes.result);
+                }
+                else
+                {
+                    console.log('Completing test run FAILED: ');
+                    reject(restRes.result);
+                }
+            }
+            catch(exception)
+            {
+                console.log("Something went wrong completing the test run: " + exception.message);
+                reject(exception.message);
             }
         });
     }

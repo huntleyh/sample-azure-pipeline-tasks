@@ -110,7 +110,8 @@ async function uploadTestCaseResults(testRunId: number, runSettings: helperContr
             console.log("Retrieving the JUnit test result for test case " + entry.testCaseId + " with testSuiteId " + entry.testSuiteId);
             let testResult: helperContracts.testResult = getJUnitTestResult(entry.className, entry.methodName);
             console.log("Retrieving existing test run result for test case " + entry.testCaseId + " with testSuiteId " + entry.testSuiteId);
-            let existingRecord: apiContracts.testCaseResult | null = getTargetTestResult(parseInt(entry.testCaseId), parseInt(entry.testSuiteId), testRunExistingResults);
+            let existingRecord: apiContracts.testCaseResult = getTargetTestResult(parseInt(entry.testCaseId), parseInt(entry.testSuiteId), testRunExistingResults);
+            console.log("Retrieved " + existingRecord);
             //TODO
             //let existingRecord: apiContracts.testCaseResult = indexedTestRunResults[entry.testCaseId][entry.testSuiteId];
             
@@ -160,18 +161,26 @@ async function uploadTestCaseResults(testRunId: number, runSettings: helperContr
         resolve(finalOutcome);
     });
 }
-function getTargetTestResult(testCaseId: number, testSuiteId: number, existingTestResults: apiContracts.testCaseResult[]): apiContracts.testCaseResult | null{
-    for(var i: number = 0; i < existingTestResults.length; i++)
+function getTargetTestResult(testCaseId: number, testSuiteId: number, existingTestResults: apiContracts.testCaseResult[]): apiContracts.testCaseResult {
+    console.log("Recieved test case: " + testCaseId + " and suite: " + testSuiteId + " with existing results: " + existingTestResults.length);
+
+    let emptyResult: apiContracts.testCaseResult = {} as apiContracts.testCaseResult;
+    for(var index: number = 0; index < existingTestResults.length; index++)
     {
-        console.log("Checking entry with " + existingTestResults[i].testCase.id  + " suite id " + existingTestResults[i].testSuite.id);
-        if(existingTestResults[i].testCase.id == testCaseId && existingTestResults[i].testSuite.id == testSuiteId)
+        console.log("inside loop");
+        let entry = existingTestResults[index];
+
+        console.log("Entry is " + entry);
+        console.log("TestCase is " + entry.testCase);
+        console.log("Checking entry with " + existingTestResults[index].testCase.id  + " suite id " + existingTestResults[index]?.testSuite?.id);
+        if(existingTestResults[index].testCase.id == testCaseId && (!existingTestResults[index].testSuite || (existingTestResults[index].testSuite && existingTestResults[index].testSuite.id == testSuiteId)))
         {
             console.log("Found matching test result for test case " + testCaseId + " and suite " + testSuiteId);
-            return existingTestResults[i];
+            return existingTestResults[index];
         }
     }
     console.log("No matching test result found for testCaseId" + testCaseId + "/ testSuiteId " + testSuiteId + ".\n Please check the specified testCaseId and testSuiteId in your JSON mapping");
-    return null;
+    return emptyResult;
 }
 /**
  * Index the collection of test case results to minimize time spent iterating over the list for each test case

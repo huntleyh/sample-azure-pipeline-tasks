@@ -8,3 +8,4 @@ var TestRunState;
     TestRunState[TestRunState["Aborted"] = 3] = "Aborted";
     TestRunState[TestRunState["Waiting"] = 4] = "Waiting";
 })(TestRunState = exports.TestRunState || (exports.TestRunState = {}));
+//# sourceMappingURL=helperContracts.js.map

@@ -28,3 +28,4 @@ describe('PublishJUnitTestResults', function () {
         done();
     });
 });
+//# sourceMappingURL=_suite.js.map

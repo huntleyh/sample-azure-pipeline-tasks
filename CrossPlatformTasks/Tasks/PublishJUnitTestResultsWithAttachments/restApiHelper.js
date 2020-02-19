@@ -67,10 +67,12 @@ var RestApiHelper = /** @class */ (function () {
             var _this = this;
             return __generator(this, function (_a) {
                 return [2 /*return*/, new Promise(function (resolve, reject) { return __awaiter(_this, void 0, void 0, function () {
-                        var restRes;
+                        var restRes, exception_1;
                         return __generator(this, function (_a) {
                             switch (_a.label) {
-                                case 0: return [4 /*yield*/, this._rest.create('_apis/test/runs?api-version=5.1', reqBody)];
+                                case 0:
+                                    _a.trys.push([0, 2, , 3]);
+                                    return [4 /*yield*/, this._rest.create('_apis/test/runs?api-version=5.1', reqBody)];
                                 case 1:
                                     restRes = _a.sent();
                                     console.log(restRes.statusCode);
@@ -83,7 +85,13 @@ var RestApiHelper = /** @class */ (function () {
                                         console.log('Create test run FAILED: ');
                                         reject(restRes.result);
                                     }
-                                    return [2 /*return*/];
+                                    return [3 /*break*/, 3];
+                                case 2:
+                                    exception_1 = _a.sent();
+                                    console.log("Something went wrong creating the new test run: " + exception_1.message);
+                                    reject(exception_1.message);
+                                    return [3 /*break*/, 3];
+                                case 3: return [2 /*return*/];
                             }
                         });
                     }); })];
@@ -100,10 +108,12 @@ var RestApiHelper = /** @class */ (function () {
             var _this = this;
             return __generator(this, function (_a) {
                 return [2 /*return*/, new Promise(function (resolve, reject) { return __awaiter(_this, void 0, void 0, function () {
-                        var restRes;
+                        var restRes, exception_2;
                         return __generator(this, function (_a) {
                             switch (_a.label) {
-                                case 0: return [4 /*yield*/, this._rest.create('_apis/test/Runs/' + testRunId + '/results?api-version=5.1', testResults)];
+                                case 0:
+                                    _a.trys.push([0, 2, , 3]);
+                                    return [4 /*yield*/, this._rest.create('_apis/test/Runs/' + testRunId + '/results?api-version=5.1', testResults)];
                                 case 1:
                                     restRes = _a.sent();
                                     console.log(restRes.statusCode);
@@ -116,7 +126,13 @@ var RestApiHelper = /** @class */ (function () {
                                         console.log('Adding test result FAILED: ');
                                         reject(restRes.result);
                                     }
-                                    return [2 /*return*/];
+                                    return [3 /*break*/, 3];
+                                case 2:
+                                    exception_2 = _a.sent();
+                                    console.log("Something went wrong adding the test results: " + exception_2.message);
+                                    reject(exception_2);
+                                    return [3 /*break*/, 3];
+                                case 3: return [2 /*return*/];
                             }
                         });
                     }); })];
@@ -133,10 +149,12 @@ var RestApiHelper = /** @class */ (function () {
             var _this = this;
             return __generator(this, function (_a) {
                 return [2 /*return*/, new Promise(function (resolve, reject) { return __awaiter(_this, void 0, void 0, function () {
-                        var restRes;
+                        var restRes, exception_3;
                         return __generator(this, function (_a) {
                             switch (_a.label) {
-                                case 0: return [4 /*yield*/, this._rest.update('_apis/test/Runs/' + testRunId + '/results?api-version=5.1', testResults)];
+                                case 0:
+                                    _a.trys.push([0, 2, , 3]);
+                                    return [4 /*yield*/, this._rest.update('_apis/test/Runs/' + testRunId + '/results?api-version=5.1', testResults)];
                                 case 1:
                                     restRes = _a.sent();
                                     console.log(restRes.statusCode);
@@ -149,7 +167,13 @@ var RestApiHelper = /** @class */ (function () {
                                         console.log('Adding test result FAILED: ');
                                         reject(restRes.result);
                                     }
-                                    return [2 /*return*/];
+                                    return [3 /*break*/, 3];
+                                case 2:
+                                    exception_3 = _a.sent();
+                                    console.log("Something went wrong updating the test results");
+                                    reject(exception_3.message);
+                                    return [3 /*break*/, 3];
+                                case 3: return [2 /*return*/];
                             }
                         });
                     }); })];
@@ -165,11 +189,13 @@ var RestApiHelper = /** @class */ (function () {
             var _this = this;
             return __generator(this, function (_a) {
                 return [2 /*return*/, new Promise(function (resolve, reject) { return __awaiter(_this, void 0, void 0, function () {
-                        var restRes;
+                        var restRes, exception_4;
                         var _a, _b;
                         return __generator(this, function (_c) {
                             switch (_c.label) {
-                                case 0: return [4 /*yield*/, this._rest.get('_apis/test/Runs/' + testRunId + '/results?api-version=5.1')];
+                                case 0:
+                                    _c.trys.push([0, 2, , 3]);
+                                    return [4 /*yield*/, this._rest.get('_apis/test/Runs/' + testRunId + '/results?api-version=5.1')];
                                 case 1:
                                     restRes = _c.sent();
                                     console.log(restRes.statusCode);
@@ -182,7 +208,13 @@ var RestApiHelper = /** @class */ (function () {
                                         console.log('Get test run results FAILED: ');
                                         reject((_b = restRes.result) === null || _b === void 0 ? void 0 : _b.value);
                                     }
-                                    return [2 /*return*/];
+                                    return [3 /*break*/, 3];
+                                case 2:
+                                    exception_4 = _c.sent();
+                                    console.log("Something went wrong retrieving the test run results: " + exception_4.message);
+                                    reject(exception_4.message);
+                                    return [3 /*break*/, 3];
+                                case 3: return [2 /*return*/];
                             }
                         });
                     }); })];
@@ -200,10 +232,12 @@ var RestApiHelper = /** @class */ (function () {
             return __generator(this, function (_a) {
                 console.log("Completing testrun " + testRunId);
                 return [2 /*return*/, new Promise(function (resolve, reject) { return __awaiter(_this, void 0, void 0, function () {
-                        var restRes;
+                        var restRes, exception_5;
                         return __generator(this, function (_a) {
                             switch (_a.label) {
-                                case 0: return [4 /*yield*/, this._rest.create('_apis/test/Runs/' + testRunId + '?api-version=5.1', body)];
+                                case 0:
+                                    _a.trys.push([0, 2, , 3]);
+                                    return [4 /*yield*/, this._rest.update('_apis/test/Runs/' + testRunId + '?api-version=5.1', body)];
                                 case 1:
                                     restRes = _a.sent();
                                     console.log(restRes.statusCode);
@@ -216,7 +250,13 @@ var RestApiHelper = /** @class */ (function () {
                                         console.log('Completing test run FAILED: ');
                                         reject(restRes.result);
                                     }
-                                    return [2 /*return*/];
+                                    return [3 /*break*/, 3];
+                                case 2:
+                                    exception_5 = _a.sent();
+                                    console.log("Something went wrong completing the test run: " + exception_5.message);
+                                    reject(exception_5.message);
+                                    return [3 /*break*/, 3];
+                                case 3: return [2 /*return*/];
                             }
                         });
                     }); })];
@@ -226,3 +266,4 @@ var RestApiHelper = /** @class */ (function () {
     return RestApiHelper;
 }());
 exports.RestApiHelper = RestApiHelper;
+//# sourceMappingURL=restApiHelper.js.map
