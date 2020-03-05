@@ -53,7 +53,7 @@ export class RestApiHelper {
             catch(exception)
             {
                 console.log("Something went wrong creating the new test run: " + exception.message);
-                reject(exception.message);
+                reject(exception);
             }
         });
     }
@@ -121,7 +121,7 @@ export class RestApiHelper {
             catch(exception)
             {
                 console.log("Something went wrong updating the test results");
-                reject(exception.message);
+                reject(exception);
             }
         });
     }
@@ -153,7 +153,7 @@ export class RestApiHelper {
             catch(exception)
             {
                 console.log("Something went wrong retrieving the test run results: " + exception.message);
-                reject(exception.message);
+                reject(exception);
             }
         });
     }
@@ -187,7 +187,7 @@ export class RestApiHelper {
             catch(exception)
             {
                 console.log("Something went wrong completing the test run: " + exception.message);
-                reject(exception.message);
+                reject(exception);
             }
         });
     }
@@ -198,7 +198,7 @@ export class RestApiHelper {
             try
             {
                 let restRes: rc.IRestResponse<contracts.testRunAttachmentReference> = 
-                                    await this._rest.update<contracts.testRunAttachmentReference>('_apis/test/Runs/'+testRunId+'/attachments?api-version=5.1-preview.1', body);
+                                    await this._rest.create<contracts.testRunAttachmentReference>('_apis/test/Runs/'+testRunId+'/attachments?api-version=5.1-preview.1', body);
 
                 console.log(restRes.statusCode);
                 console.log(restRes.result);
@@ -217,7 +217,7 @@ export class RestApiHelper {
             catch(exception)
             {
                 console.log("Something went wrong creating the test run attachment: " + exception.message);
-                reject(exception.message);
+                reject(exception);
             }
         });
     }

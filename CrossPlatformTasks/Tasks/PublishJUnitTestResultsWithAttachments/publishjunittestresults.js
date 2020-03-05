@@ -168,7 +168,7 @@ function parseJUnitTestResultsFile(filePath) {
                             case 2:
                                 err_3 = _a.sent();
                                 console.log("Failed to parse JUnit XML results file: " + err_3.message);
-                                reject(err_3.message);
+                                reject(err_3);
                                 return [3 /*break*/, 3];
                             case 3: return [2 /*return*/];
                         }
@@ -208,7 +208,7 @@ function uploadGeneralAttachments(testRunId, runSettings, helper) {
         var _this = this;
         return __generator(this, function (_a) {
             return [2 /*return*/, new Promise(function (resolve, reject) { return __awaiter(_this, void 0, void 0, function () {
-                    var sourceFolder, allPaths, sourceFolderPattern, matchedPaths, matchedFiles, i, file, request, response, err_4;
+                    var sourceFolder, allPaths, sourceFolderPattern, matchedPaths, matchedFiles, i, file, request, fileContents, response, err_4;
                     return __generator(this, function (_a) {
                         switch (_a.label) {
                             case 0:
@@ -229,7 +229,8 @@ function uploadGeneralAttachments(testRunId, runSettings, helper) {
                                 request = {};
                                 request.attachmentType = "GeneralAttachment";
                                 request.fileName = path.basename(file);
-                                request.stream = fs.readFileSync(file, 'utf8');
+                                fileContents = fs.readFileSync(file);
+                                request.stream = fileContents.toString('base64');
                                 return [4 /*yield*/, helper.createTestRunAttachment(testRunId, request)];
                             case 2:
                                 response = _a.sent();
@@ -249,7 +250,13 @@ function uploadGeneralAttachments(testRunId, runSettings, helper) {
                             case 6:
                                 err_4 = _a.sent();
                                 console.log("Unable to update test case results" + err_4.message);
-                                reject(err_4.message);
+                                if (err_4) {
+                                    reject(err_4);
+                                }
+                                else {
+                                    console.log("Unable to update test case results");
+                                    reject();
+                                }
                                 return [3 /*break*/, 7];
                             case 7: return [2 /*return*/];
                         }
@@ -320,7 +327,7 @@ function uploadTestCaseResults(testRunId, runSettings, helper) {
                             case 6:
                                 err_5 = _a.sent();
                                 console.log("Unable to update test case results" + err_5.message);
-                                reject(err_5.message);
+                                reject(err_5);
                                 return [3 /*break*/, 7];
                             case 7: return [2 /*return*/];
                         }

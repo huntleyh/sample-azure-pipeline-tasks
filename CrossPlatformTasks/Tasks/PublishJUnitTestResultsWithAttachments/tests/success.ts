@@ -5,6 +5,8 @@ import path = require('path');
 let taskPath = path.join(__dirname, '..', 'publishjunittestresults.js');
 let tmr: tmrm.TaskMockRunner = new tmrm.TaskMockRunner(taskPath);
 
+let testPath: string = "C:\\GitHubRepos\\simplefiles";
+
 console.log("Starting test");
 tmr.setInput('targetType', 'inline');
 tmr.setInput('jsonTestCaseMappingFile', '');
@@ -13,16 +15,15 @@ tmr.setInput('testPlan', '899');
 tmr.setInput('testSuite', '87,98');
 tmr.setInput('testConfiguration', '212');
 tmr.setInput('generalAttachments', '**/*.html\n**/*.txt\n**/*.jpg');
-tmr.setInput('sourceFolder', 'C:\\GitHubRepos\\simplefiles\\');
+tmr.setInput('sourceFolder', path.normalize(testPath));
 tmr.setInput('testResultsOutputFile','C:\\GitHubRepos\\simplefiles\\JUnitTestResult\\TEST-main.java.com.Tests.DMA_Smoke_SimpleLogin.xml')
 let answers: ma.TaskLibAnswers = {} as ma.TaskLibAnswers;
 
 answers.checkPath = { };
 answers.find = { };
 
-let testPath: string = "C:\\GitHubRepos\\simplefiles";
 answers.checkPath[path.normalize(testPath)] = true;
-answers.find[testPath] = [
+answers.find[path.normalize(testPath)] = [
     path.normalize(testPath),
     path.normalize(testPath + "\\Restless.jpg"),
     path.normalize(testPath + "\\simple.txt"),

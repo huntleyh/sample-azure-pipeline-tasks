@@ -118,7 +118,7 @@ async function parseJUnitTestResultsFile(filePath: string): Promise<helperContra
         catch(err)
         {
             console.log("Failed to parse JUnit XML results file: " + err.message);
-            reject(err.message);
+            reject(err);
         }
     });
 }
@@ -176,7 +176,8 @@ async function uploadGeneralAttachments(testRunId: number, runSettings: helperCo
                     let request: apiContracts.testRunAttachmentRequestBody =  {} as apiContracts.testRunAttachmentRequestBody
                     request.attachmentType = "GeneralAttachment";
                     request.fileName = path.basename(file);
-                    request.stream = fs.readFileSync(file, 'utf8');
+                    let fileContents = fs.readFileSync(file)
+                    request.stream = fileContents.toString('base64');
                 
                     let response: apiContracts.testRunAttachmentReference = await helper.createTestRunAttachment(testRunId, request);
 
@@ -192,7 +193,16 @@ async function uploadGeneralAttachments(testRunId: number, runSettings: helperCo
         catch(err)
         {
             console.log("Unable to update test case results" + err.message);
-            reject(err.message);
+            
+            if(err)
+            {
+                reject(err);
+            }
+            else
+            {
+                console.log("Unable to update test case results");
+                reject();
+            }
         }
     });
 }
@@ -257,7 +267,7 @@ async function uploadTestCaseResults(testRunId: number, runSettings: helperContr
         catch(err)
         {
             console.log("Unable to update test case results" + err.message);
-            reject(err.message);
+            reject(err);
         }
     });
 }

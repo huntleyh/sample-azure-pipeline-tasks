@@ -92,7 +92,7 @@ var RestApiHelper = /** @class */ (function () {
                                 case 2:
                                     exception_1 = _a.sent();
                                     console.log("Something went wrong creating the new test run: " + exception_1.message);
-                                    reject(exception_1.message);
+                                    reject(exception_1);
                                     return [3 /*break*/, 3];
                                 case 3: return [2 /*return*/];
                             }
@@ -174,7 +174,7 @@ var RestApiHelper = /** @class */ (function () {
                                 case 2:
                                     exception_3 = _a.sent();
                                     console.log("Something went wrong updating the test results");
-                                    reject(exception_3.message);
+                                    reject(exception_3);
                                     return [3 /*break*/, 3];
                                 case 3: return [2 /*return*/];
                             }
@@ -215,7 +215,7 @@ var RestApiHelper = /** @class */ (function () {
                                 case 2:
                                     exception_4 = _c.sent();
                                     console.log("Something went wrong retrieving the test run results: " + exception_4.message);
-                                    reject(exception_4.message);
+                                    reject(exception_4);
                                     return [3 /*break*/, 3];
                                 case 3: return [2 /*return*/];
                             }
@@ -257,7 +257,7 @@ var RestApiHelper = /** @class */ (function () {
                                 case 2:
                                     exception_5 = _a.sent();
                                     console.log("Something went wrong completing the test run: " + exception_5.message);
-                                    reject(exception_5.message);
+                                    reject(exception_5);
                                     return [3 /*break*/, 3];
                                 case 3: return [2 /*return*/];
                             }
@@ -277,7 +277,7 @@ var RestApiHelper = /** @class */ (function () {
                             switch (_a.label) {
                                 case 0:
                                     _a.trys.push([0, 2, , 3]);
-                                    return [4 /*yield*/, this._rest.update('_apis/test/Runs/' + testRunId + '/attachments?api-version=5.1-preview.1', body)];
+                                    return [4 /*yield*/, this._rest.create('_apis/test/Runs/' + testRunId + '/attachments?api-version=5.1-preview.1', body)];
                                 case 1:
                                     restRes = _a.sent();
                                     console.log(restRes.statusCode);
@@ -294,7 +294,7 @@ var RestApiHelper = /** @class */ (function () {
                                 case 2:
                                     exception_6 = _a.sent();
                                     console.log("Something went wrong creating the test run attachment: " + exception_6.message);
-                                    reject(exception_6.message);
+                                    reject(exception_6);
                                     return [3 /*break*/, 3];
                                 case 3: return [2 /*return*/];
                             }
