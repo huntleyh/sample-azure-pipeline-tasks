@@ -59,6 +59,7 @@ export interface testCaseResult{
     priority: number,
     outcome: string,
     errorMessage: string,
+    failureType: string,
     state: string
 }
 

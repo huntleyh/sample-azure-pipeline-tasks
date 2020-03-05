@@ -364,16 +364,19 @@ function parsedTestCaseResult(testCase: helperContracts.testCase): apiContracts.
         {
             result.outcome = "Failed";
             result.errorMessage = squashArray(testCase.failure);
+            result.failureType = squashArray(testCase.failure, "type");
         }
         else if(!isEmptyArray(testCase.skipped))
         {
-            result.outcome = "Failed";
-            result.errorMessage = squashArray(testCase.skipped);
+            result.outcome = "NotExecuted";
+            //result.errorMessage = squashArray(testCase.skipped);
+            //result.failureType = squashArray(testCase.failure, "type");
         }
         else if(!isEmptyArray(testCase.error))
         {
-            result.outcome = "Failed";
+            result.outcome = "Error";
             result.errorMessage = squashArray(testCase.error);
+            result.failureType = squashArray(testCase.failure, "type");
         }
         return result;
     }
@@ -392,7 +395,7 @@ function squashArray(values: any[], propName: string = "message"): string
     {
         for(var i: number = 0; i < values.length; i++)
         {
-            val = val + `${concatArray(values[i].propName)}`;
+            val = val + `${concatArray(values[i][propName])}`;
         }
     }
     return val;
@@ -470,33 +473,24 @@ function getTestCaseJsonMapping(targetType: string, mappingFile: string, inlineJ
         console.log('Retrieving json mapping file content.');
         let filePath: string = path.join(__dirname, `${mappingFile}`);
 
-        const fileExists = util.promisify(fs.exists);
-        const readFileContents = util.promisify(fs.readFile);
+        if(fs.existsSync(filePath))
+        {
+            console.log('File found.'); 
 
-        fileExists(filePath)
-            .then((exists) => {
-                if(exists == true)
-                {
-                    console.log('File found.'); 
-
-                    readFileContents(filePath, 'utf-8')
-                        .then((text)=>
-                        {
-                            jsonMapping = text;
-                        })
-                        .catch((err)=>{
-                            console.error(`Could not read specified mapping file '${filePath}': ${err}`);
-                        })
-                }
-                else
-                {
-                    console.error(`Failed to locate specified mapping file '${filePath}'`);
-                }
-            })
-            .catch((err)=>
+            try
             {
-                console.error(`Failed to locate specified mapping file '${filePath}': ${err}`);
-            });
+                jsonMapping = fs.readFileSync(filePath, 'utf8');
+            }
+            catch(err){
+                console.error(`Could not read specified mapping file '${filePath}': ${err}`);
+                throw err
+            }
+        }
+        else
+        {
+            console.error(`Failed to locate specified mapping file '${filePath}'`);
+            throw new Error(`Failed to locate specified mapping file '${filePath}'`);
+        }
     }
     else
     {

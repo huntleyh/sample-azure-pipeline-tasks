@@ -1,0 +1,32 @@
+[
+    {
+        "className": "main.java.com.Tests.USB_VB_iOSBrowser_LogInToApp",
+        "methodName": "LoginToTheApp",
+        "testCaseId": 951,
+        "testSuiteId": 942
+    },
+    {
+        "className": "main.java.com.Tests.USB_VB_iOSBrowser_SignInWithLogon",
+        "methodName": "SignInWithLogon",
+        "testCaseId": 943,
+        "testSuiteId": 942
+    },
+    {
+        "className": "main.java.com.Tests.USB_VB_iOSBrowser_ClickSignUp",
+        "methodName": "ClickSignUp",
+        "testCaseId": 944,
+        "testSuiteId": 942
+    },
+    {
+        "className": "main.java.com.Tests.USB_VB_iOSBrowser_SignOut",
+        "methodName": "SignOut",
+        "testCaseId": 945,
+        "testSuiteId": 942
+    },
+    {
+        "className": "main.java.com.Tests.USB_VB_iOSBrowser_SetPreferences",
+        "methodName": "SetPreferences",
+        "testCaseId": 946,
+        "testSuiteId": 942
+    }
+]
