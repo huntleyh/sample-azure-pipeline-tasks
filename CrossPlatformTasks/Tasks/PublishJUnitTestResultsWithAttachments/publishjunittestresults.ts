@@ -471,15 +471,20 @@ function getTestCaseJsonMapping(targetType: string, mappingFile: string, inlineJ
     if (targetType == 'filePath')
     {
         console.log('Retrieving json mapping file content.');
-        let filePath: string = path.join(__dirname, `${mappingFile}`);
+        let filePath: string | null = null;
 
-        if(fs.existsSync(filePath))
+        if(fs.existsSync(mappingFile))
+            filePath = mappingFile;
+        else if(fs.existsSync(path.join(__dirname, `${mappingFile}`)))
+            filePath = path.join(__dirname, `${mappingFile}`);
+
+        if(filePath)
         {
             console.log('File found.'); 
 
             try
             {
-                jsonMapping = fs.readFileSync(filePath, 'utf8');
+                jsonMapping = fs.readFileSync(filePath?.toString(), 'utf8');
             }
             catch(err){
                 console.error(`Could not read specified mapping file '${filePath}': ${err}`);
