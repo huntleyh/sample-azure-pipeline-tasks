@@ -110,6 +110,14 @@
             }
         },
         {
+            "name": "testResultsOutputFile",
+            "type": "filePath",
+            "label": "Test Results Output File",
+            "defaultValue": "$(System.DefaultWorkingDirectory)/JUnitTestResults.xml",
+            "required": false,
+            "helpMarkDown": "The JUnit test results XML"
+        },
+        {
             "name": "sourceFolder",
             "type": "filePath",
             "label": "Source Folder",

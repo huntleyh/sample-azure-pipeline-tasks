@@ -1,5 +1,7 @@
 export interface inputContract
 {
+    testResultsOutputFile: string;
+    parsedJUnitTestResults: jUnitTestResultRoot;
     targetType: string;
     jsonTestCaseMappingFile: string;
     inlineJsonTestCaseMapping: string;
@@ -29,4 +31,51 @@ export enum TestRunState
     Completed = 2, 
     Aborted = 3, 
     Waiting = 4
+}
+export interface jUnitTestResultRoot
+{
+    testsuite: testSuite
+}
+/*export interface testSuite
+{
+    duration: number[];
+    suites: testSuite[];
+}
+*/
+export interface testSuite
+{
+    name: string[];
+    failures: number[];
+    package: string[];
+    tests: number[];
+    time: number[];
+    testcase: testCase[];
+}
+
+export interface testCase
+{
+    classname: string[];
+    name: string[];
+    time: number[];
+    error: error[];
+    failure: failure[];
+    skipped: skipped[];
+}
+
+export interface error
+{
+    message: string[];
+    type: string[]
+}
+
+export interface failure
+{
+    message: string[];
+    type: string[]
+}
+
+export interface skipped
+{
+    message: string[];
+    type: string[]
 }

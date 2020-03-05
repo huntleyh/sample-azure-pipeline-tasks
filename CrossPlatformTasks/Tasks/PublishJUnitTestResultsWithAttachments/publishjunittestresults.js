@@ -49,16 +49,18 @@ var fs = require("fs");
 var util = require("util");
 var helperContracts = __importStar(require("./helperContracts"));
 var rh = __importStar(require("./restApiHelper"));
+//import { match } from 'assert';
+var xml2js = require('xml2js');
 require('util.promisify').shim();
-var request = require('request');
-require('request').debug = true;
+//var request = require('request');
+//require('request').debug = true
 function run() {
     return __awaiter(this, void 0, void 0, function () {
-        var runSettings, folderPath, jsonMapping, baseUrl, helper, reqBody, testRunId, response, outcome, body, err_1, body, err_2;
-        return __generator(this, function (_a) {
-            switch (_a.label) {
+        var runSettings, jsonMapping, _a, baseUrl, helper, reqBody, testRunId, response, outcome, body, err_1, body, err_2;
+        return __generator(this, function (_b) {
+            switch (_b.label) {
                 case 0:
-                    _a.trys.push([0, 9, , 10]);
+                    _b.trys.push([0, 10, , 11]);
                     tl.setResourcePath(path.join(__dirname, 'task.json'));
                     runSettings = {};
                     runSettings.targetType = tl.getInput('targetType', true);
@@ -67,13 +69,18 @@ function run() {
                     runSettings.testPlanId = parseInt("" + tl.getInput('testPlan', true));
                     runSettings.testSuiteStrings = tl.getDelimitedInput('testSuite', ',', true);
                     runSettings.testConfiguration = parseInt("" + tl.getInput('testConfiguration', true));
+                    runSettings.testResultsOutputFile = tl.getInput('testResultsOutputFile', true);
                     runSettings.generalAttachments = tl.getDelimitedInput('generalAttachments', '\n', false);
-                    folderPath = tl.getPathInput('sourceFolder', true, false);
-                    runSettings.sourceFolder = getStringValue(folderPath);
+                    runSettings.sourceFolder = getStringValue(tl.getPathInput('sourceFolder', true, false));
                     runSettings.apiBatchSize = (tl.getVariable('JUnitTestCase.BatchSize') && tl.getVariable('JUnitTestCase.BatchSize') != '' ? parseInt("" + tl.getVariable('JUnitTestCase.BatchSize')) : 20);
                     jsonMapping = getTestCaseJsonMapping("" + runSettings.targetType, "" + runSettings.jsonTestCaseMappingFile, "" + runSettings.inlineJsonTestCaseMapping);
                     console.log("Parsing JSON mapping: " + jsonMapping);
                     runSettings.jsonTestCaseMapping = JSON.parse(jsonMapping);
+                    console.log("Parsing JUnit Test Results file: " + runSettings.testResultsOutputFile);
+                    _a = runSettings;
+                    return [4 /*yield*/, parseJUnitTestResultsFile(runSettings.testResultsOutputFile)];
+                case 1:
+                    _a.parsedJUnitTestResults = _b.sent();
                     runSettings.organization = "" + tl.getVariable('System.TeamFoundationCollectionUri');
                     runSettings.project = "" + tl.getVariable('System.TeamProject');
                     runSettings.accessToken = "" + tl.getVariable('System.AccessToken');
@@ -83,50 +90,97 @@ function run() {
                     testRunId = -1;
                     console.log('Creating test run entry.');
                     return [4 /*yield*/, helper.createTestRun(reqBody)];
-                case 1:
-                    response = _a.sent();
-                    if (!(response != null)) return [3 /*break*/, 8];
-                    _a.label = 2;
                 case 2:
-                    _a.trys.push([2, 6, , 8]);
+                    response = _b.sent();
+                    if (!(response != null)) return [3 /*break*/, 9];
+                    _b.label = 3;
+                case 3:
+                    _b.trys.push([3, 7, , 9]);
                     testRunId = response.id;
                     console.log("Recieved testRunId: " + testRunId);
                     return [4 /*yield*/, uploadTestCaseResults(testRunId, runSettings, helper)];
-                case 3:
-                    outcome = _a.sent();
+                case 4:
+                    outcome = _b.sent();
                     // TODO: Add logic to upload general attachment
                     return [4 /*yield*/, uploadGeneralAttachments(testRunId, runSettings, helper)];
-                case 4:
+                case 5:
                     // TODO: Add logic to upload general attachment
-                    _a.sent();
+                    _b.sent();
                     console.log('Updating test run with final outcome.');
                     body = {};
                     body.state = getFinalTestResultsOutcome(outcome);
                     console.log('Updating test run status to ' + body.state);
                     return [4 /*yield*/, helper.completeTestRun(testRunId, body)];
-                case 5:
-                    _a.sent();
-                    console.log('Exiting task.');
-                    return [3 /*break*/, 8];
                 case 6:
-                    err_1 = _a.sent();
+                    _b.sent();
+                    console.log('Exiting task.');
+                    return [3 /*break*/, 9];
+                case 7:
+                    err_1 = _b.sent();
                     body = {};
                     body.state = "Aborted";
                     return [4 /*yield*/, helper.completeTestRun(testRunId, body)];
-                case 7:
-                    _a.sent();
+                case 8:
+                    _b.sent();
                     tl.setResult(tl.TaskResult.Failed, err_1.message || 'run() failed');
-                    return [3 /*break*/, 8];
-                case 8: return [3 /*break*/, 10];
-                case 9:
-                    err_2 = _a.sent();
-                    tl.setResult(tl.TaskResult.Failed, err_2.message || 'run() failed');
-                    return [3 /*break*/, 10];
-                case 10: return [2 /*return*/];
+                    return [3 /*break*/, 9];
+                case 9: return [3 /*break*/, 11];
+                case 10:
+                    err_2 = _b.sent();
+                    if (err_2) {
+                        tl.setResult(tl.TaskResult.Failed, err_2.message || 'run() failed', true);
+                    }
+                    else {
+                        tl.setResult(tl.TaskResult.Failed, "Task failed", true);
+                    }
+                    return [3 /*break*/, 11];
+                case 11: return [2 /*return*/];
             }
         });
     });
 }
+/**
+ *
+ * @param filePath path to the JUnit test results file
+ */
+function parseJUnitTestResultsFile(filePath) {
+    return __awaiter(this, void 0, void 0, function () {
+        var _this = this;
+        return __generator(this, function (_a) {
+            return [2 /*return*/, new Promise(function (resolve, reject) { return __awaiter(_this, void 0, void 0, function () {
+                    var contents, parser, result, obj, root, err_3;
+                    return __generator(this, function (_a) {
+                        switch (_a.label) {
+                            case 0:
+                                _a.trys.push([0, 2, , 3]);
+                                console.log('Reading JUnit test results XML');
+                                contents = fs.readFileSync(filePath, 'utf8');
+                                parser = new xml2js.Parser({ mergeAttrs: true });
+                                return [4 /*yield*/, parser.parseStringPromise(contents)];
+                            case 1:
+                                result = _a.sent();
+                                console.log('Parsing XML to JS');
+                                obj = JSON.stringify(result);
+                                root = JSON.parse(obj);
+                                console.log('Returning converted test suites results');
+                                resolve(root);
+                                return [3 /*break*/, 3];
+                            case 2:
+                                err_3 = _a.sent();
+                                console.log("Failed to parse JUnit XML results file: " + err_3.message);
+                                reject(err_3.message);
+                                return [3 /*break*/, 3];
+                            case 3: return [2 /*return*/];
+                        }
+                    });
+                }); })];
+        });
+    });
+}
+/**
+ * Return the string value of the provide val parameter or null
+ * @param val
+ */
 function getStringValue(val) {
     if (!val)
         return "";
@@ -154,7 +208,7 @@ function uploadGeneralAttachments(testRunId, runSettings, helper) {
         var _this = this;
         return __generator(this, function (_a) {
             return [2 /*return*/, new Promise(function (resolve, reject) { return __awaiter(_this, void 0, void 0, function () {
-                    var sourceFolder, allPaths, sourceFolderPattern, matchedPaths, matchedFiles, i, file, request_1, response, err_3;
+                    var sourceFolder, allPaths, sourceFolderPattern, matchedPaths, matchedFiles, i, file, request, response, err_4;
                     return __generator(this, function (_a) {
                         switch (_a.label) {
                             case 0:
@@ -172,11 +226,11 @@ function uploadGeneralAttachments(testRunId, runSettings, helper) {
                             case 1:
                                 if (!(i < matchedFiles.length)) return [3 /*break*/, 4];
                                 file = matchedFiles[i];
-                                request_1 = {};
-                                request_1.attachmentType = "GeneralAttachment";
-                                request_1.fileName = path.basename(file);
-                                request_1.stream = fs.readFileSync(file, 'utf8');
-                                return [4 /*yield*/, helper.createTestRunAttachment(testRunId, request_1)];
+                                request = {};
+                                request.attachmentType = "GeneralAttachment";
+                                request.fileName = path.basename(file);
+                                request.stream = fs.readFileSync(file, 'utf8');
+                                return [4 /*yield*/, helper.createTestRunAttachment(testRunId, request)];
                             case 2:
                                 response = _a.sent();
                                 if (response == null) {
@@ -193,9 +247,9 @@ function uploadGeneralAttachments(testRunId, runSettings, helper) {
                                 resolve("success");
                                 return [3 /*break*/, 7];
                             case 6:
-                                err_3 = _a.sent();
-                                console.log("Unable to update test case results" + err_3.message);
-                                reject(err_3.message);
+                                err_4 = _a.sent();
+                                console.log("Unable to update test case results" + err_4.message);
+                                reject(err_4.message);
                                 return [3 /*break*/, 7];
                             case 7: return [2 /*return*/];
                         }
@@ -209,7 +263,7 @@ function uploadTestCaseResults(testRunId, runSettings, helper) {
         var _this = this;
         return __generator(this, function (_a) {
             return [2 /*return*/, new Promise(function (resolve, reject) { return __awaiter(_this, void 0, void 0, function () {
-                    var sizeCount, finalOutcome, testResults, testRunExistingResults, i, entry, testResult, existingRecord, outcome, response, err_4;
+                    var sizeCount, finalOutcome, testResults, testRunExistingResults, i, entry, testResult, existingRecord, outcome, response, err_5;
                     return __generator(this, function (_a) {
                         switch (_a.label) {
                             case 0:
@@ -231,31 +285,17 @@ function uploadTestCaseResults(testRunId, runSettings, helper) {
                                 if (!(i < runSettings.jsonTestCaseMapping.length)) return [3 /*break*/, 5];
                                 entry = runSettings.jsonTestCaseMapping[i];
                                 console.log("Retrieving the JUnit test result for test case " + entry.testCaseId + " with testSuiteId " + entry.testSuiteId);
-                                testResult = getJUnitTestResult(entry.className, entry.methodName);
+                                testResult = getJUnitTestResult(runSettings.parsedJUnitTestResults, entry.className, entry.methodName);
                                 console.log("Retrieving existing test run result for test case " + entry.testCaseId + " with testSuiteId " + entry.testSuiteId);
                                 existingRecord = getTargetTestResult(parseInt(entry.testCaseId), parseInt(entry.testSuiteId), testRunExistingResults);
                                 console.log("Retrieved " + existingRecord);
                                 //TODO
                                 //let existingRecord: apiContracts.testCaseResult = indexedTestRunResults[entry.testCaseId][entry.testSuiteId];
-                                /*let outcome: apiContracts.testCaseResult =  {
-                                    testPlan: {
-                                        id: runSettings.testPlanId
-                                    },
-                                    testCaseTitle: testResult.testCaseTitle,
-                                    testCase: {
-                                        id: parseInt(entry.testCaseId)
-                                    },
-                                    testCaseRevision: 1,
-                                    testPoint:{
-                                        id: runSettings.testConfiguration
-                                    },
-                                    priority: 1,
-                                    outcome: (testResult.outcome ? "Passed" : "Failed")
-                                }*/
                                 if (existingRecord) {
                                     outcome = {};
                                     outcome.id = existingRecord.id;
-                                    outcome.outcome = (testResult.outcome ? "Passed" : "Failed");
+                                    outcome.outcome = (testResult ? testResult.outcome : "Not Applicable");
+                                    outcome.errorMessage = (testResult ? testResult.errorMessage : "");
                                     outcome.state = "Completed";
                                     testResults.push(outcome);
                                 }
@@ -278,9 +318,9 @@ function uploadTestCaseResults(testRunId, runSettings, helper) {
                                 resolve(finalOutcome);
                                 return [3 /*break*/, 7];
                             case 6:
-                                err_4 = _a.sent();
-                                console.log("Unable to update test case results" + err_4.message);
-                                reject(err_4.message);
+                                err_5 = _a.sent();
+                                console.log("Unable to update test case results" + err_5.message);
+                                reject(err_5.message);
                                 return [3 /*break*/, 7];
                             case 7: return [2 /*return*/];
                         }
@@ -332,12 +372,80 @@ function indexExistingResults(existingTestResults) {
     console.log("Returning indexed results");
     return indexedTestCaseResults;
 }
-function getJUnitTestResult(className, methodName) {
-    // TODO: Add logic to retrieve the test outcome from the available JUnit test results
-    var result = {};
-    result.testCaseTitle = "Login to the app";
-    result.outcome = "Passed";
-    return result;
+function getJUnitTestResult(parsedJUnitTestResults, className, methodName) {
+    //for(var s: number = 0; s < parsedJUnitTestResults.testsuite; s++)
+    //{
+    var suite = parsedJUnitTestResults.testsuite;
+    if (suite.testcase) {
+        for (var t = 0; t < suite.testcase.length; t++) {
+            var testCase = suite.testcase[t];
+            if (stringIsEqual(testCase.classname, className) && stringIsEqual(testCase.name, methodName)) {
+                return parsedTestCaseResult(testCase);
+            }
+        }
+    }
+    //}
+    return null;
+}
+function parsedTestCaseResult(testCase) {
+    try {
+        var result = {};
+        result.testCaseTitle = testCase.name[0];
+        if (isEmptyArray(testCase.failure) && isEmptyArray(testCase.skipped) && isEmptyArray(testCase.error)) {
+            result.outcome = "Passed";
+        }
+        else if (!isEmptyArray(testCase.failure)) {
+            result.outcome = "Failed";
+            result.errorMessage = squashArray(testCase.failure);
+        }
+        else if (!isEmptyArray(testCase.skipped)) {
+            result.outcome = "Failed";
+            result.errorMessage = squashArray(testCase.skipped);
+        }
+        else if (!isEmptyArray(testCase.error)) {
+            result.outcome = "Failed";
+            result.errorMessage = squashArray(testCase.error);
+        }
+        return result;
+    }
+    catch (err) {
+        console.log("Failed to parse test case result from input: " + err.message);
+    }
+    return null;
+}
+function squashArray(values, propName) {
+    if (propName === void 0) { propName = "message"; }
+    var val = "";
+    if (values) {
+        for (var i = 0; i < values.length; i++) {
+            val = val + ("" + concatArray(values[i].propName));
+        }
+    }
+    return val;
+}
+function concatArray(values, lineBreak) {
+    if (lineBreak === void 0) { lineBreak = ";"; }
+    var val = "";
+    if (values) {
+        for (var i = 0; i < values.length; i++) {
+            if (i > 0)
+                val = val + lineBreak;
+            val = val + ("" + values[i]);
+        }
+    }
+    return val;
+}
+function isEmptyArray(values) {
+    if (values && values.length > 0)
+        return false;
+    return true;
+}
+function stringIsEqual(values, search) {
+    for (var i = 0; i < values.length; i++) {
+        if (values[i] == search)
+            return true;
+    }
+    return false;
 }
 function getFinalTestResultsOutcome(outcome) {
     switch (outcome) {

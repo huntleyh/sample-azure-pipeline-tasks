@@ -6,11 +6,12 @@ import util = require("util");
 import * as helperContracts from './helperContracts';
 import * as apiContracts from './azdoApiContracts';
 import * as rh from './restApiHelper';
-import { match } from 'assert';
+//import { match } from 'assert';
+var xml2js = require('xml2js');
 
 require('util.promisify').shim();
-var request = require('request');
-require('request').debug = true
+//var request = require('request');
+//require('request').debug = true
 
 async function run() {
     try {
@@ -24,15 +25,17 @@ async function run() {
         runSettings.testPlanId = parseInt(`${tl.getInput('testPlan', true)}`);
         runSettings.testSuiteStrings = tl.getDelimitedInput('testSuite', ',', true);
         runSettings.testConfiguration = parseInt(`${tl.getInput('testConfiguration', true)}`);
+        runSettings.testResultsOutputFile = tl.getInput('testResultsOutputFile', true) as string;
         runSettings.generalAttachments = tl.getDelimitedInput('generalAttachments', '\n', false);
-        let folderPath = tl.getPathInput('sourceFolder', true, false);
-        runSettings.sourceFolder = getStringValue(folderPath);
+        runSettings.sourceFolder = getStringValue(tl.getPathInput('sourceFolder', true, false));
         runSettings.apiBatchSize = (tl.getVariable('JUnitTestCase.BatchSize') && tl.getVariable('JUnitTestCase.BatchSize') != '' ? parseInt(`${tl.getVariable('JUnitTestCase.BatchSize')}`) : 20);
         
         let jsonMapping: string = getTestCaseJsonMapping(`${runSettings.targetType}`, `${runSettings.jsonTestCaseMappingFile}`, `${runSettings.inlineJsonTestCaseMapping}`);
 
         console.log(`Parsing JSON mapping: ${jsonMapping}`);
-        runSettings.jsonTestCaseMapping = JSON.parse(jsonMapping);
+        runSettings.jsonTestCaseMapping = JSON.parse(jsonMapping); 
+        console.log(`Parsing JUnit Test Results file: ${runSettings.testResultsOutputFile}`);
+        runSettings.parsedJUnitTestResults = await parseJUnitTestResultsFile(runSettings.testResultsOutputFile);
 
         runSettings.organization = `${tl.getVariable('System.TeamFoundationCollectionUri')}`;
         runSettings.project = `${tl.getVariable('System.TeamProject')}`;
@@ -59,7 +62,6 @@ async function run() {
                 let outcome = await uploadTestCaseResults(testRunId, runSettings, helper);
 
                 // TODO: Add logic to upload general attachment
-
                 await uploadGeneralAttachments(testRunId, runSettings, helper);
 
                 console.log('Updating test run with final outcome.')
@@ -83,10 +85,47 @@ async function run() {
         }
     }
     catch (err) {
-        tl.setResult(tl.TaskResult.Failed, err.message || 'run() failed');
+        if(err)
+        {
+            tl.setResult(tl.TaskResult.Failed, err.message || 'run() failed', true);
+        }
+        else
+        {
+            tl.setResult(tl.TaskResult.Failed, "Task failed", true);
+        }
     }
 }
+/**
+ * 
+ * @param filePath path to the JUnit test results file
+ */
+async function parseJUnitTestResultsFile(filePath: string): Promise<helperContracts.jUnitTestResultRoot>
+{
+    return new Promise(async (resolve, reject)=> {
+        try
+        {
+            console.log('Reading JUnit test results XML')
+            var contents: string = fs.readFileSync(filePath, 'utf8');
+            var parser = new xml2js.Parser({mergeAttrs: true});
+            var result = await parser.parseStringPromise(contents);
+            console.log('Parsing XML to JS')
+            var obj = JSON.stringify(result);
+            var root: helperContracts.jUnitTestResultRoot = (JSON.parse(obj) as helperContracts.jUnitTestResultRoot);
 
+            console.log('Returning converted test suites results')
+            resolve(root);
+        }
+        catch(err)
+        {
+            console.log("Failed to parse JUnit XML results file: " + err.message);
+            reject(err.message);
+        }
+    });
+}
+/**
+ * Return the string value of the provide val parameter or null 
+ * @param val 
+ */
 function getStringValue(val: string | undefined): string
 {
     if(!val)
@@ -178,34 +217,19 @@ async function uploadTestCaseResults(testRunId: number, runSettings: helperContr
             for(var i: number = 0; i < runSettings.jsonTestCaseMapping.length; i++){
                 let entry: any = runSettings.jsonTestCaseMapping[i];            
                 console.log("Retrieving the JUnit test result for test case " + entry.testCaseId + " with testSuiteId " + entry.testSuiteId);
-                let testResult: helperContracts.testResult = getJUnitTestResult(entry.className, entry.methodName);
+                let testResult: apiContracts.testCaseResult | null = getJUnitTestResult(runSettings.parsedJUnitTestResults, entry.className, entry.methodName);
                 console.log("Retrieving existing test run result for test case " + entry.testCaseId + " with testSuiteId " + entry.testSuiteId);
                 let existingRecord: apiContracts.testCaseResult = getTargetTestResult(parseInt(entry.testCaseId), parseInt(entry.testSuiteId), testRunExistingResults);
                 console.log("Retrieved " + existingRecord);
                 //TODO
                 //let existingRecord: apiContracts.testCaseResult = indexedTestRunResults[entry.testCaseId][entry.testSuiteId];
-                
-                /*let outcome: apiContracts.testCaseResult =  {
-                    testPlan: {
-                        id: runSettings.testPlanId
-                    },
-                    testCaseTitle: testResult.testCaseTitle,
-                    testCase: {
-                        id: parseInt(entry.testCaseId)
-                    },
-                    testCaseRevision: 1,
-                    testPoint:{
-                        id: runSettings.testConfiguration
-                    },
-                    priority: 1,
-                    outcome: (testResult.outcome ? "Passed" : "Failed")
-                }*/
 
                 if(existingRecord)
                 {
                     let outcome: apiContracts.testCaseResult =  {} as apiContracts.testCaseResult
                     outcome.id = existingRecord.id;
-                    outcome.outcome = (testResult.outcome ? "Passed" : "Failed");
+                    outcome.outcome = (testResult ? testResult.outcome : "Not Applicable");
+                    outcome.errorMessage = (testResult ? testResult.errorMessage : "");
                     outcome.state = "Completed";
 
                     testResults.push(outcome);
@@ -291,16 +315,111 @@ function indexExistingResults(existingTestResults: apiContracts.testCaseResult[]
     return indexedTestCaseResults;
 }
 
-function getJUnitTestResult(className: string, methodName: string): helperContracts.testResult
+function getJUnitTestResult(parsedJUnitTestResults: helperContracts.jUnitTestResultRoot, className: string, methodName: string): apiContracts.testCaseResult | null
 {
-    // TODO: Add logic to retrieve the test outcome from the available JUnit test results
-    let result: helperContracts.testResult = {} as helperContracts.testResult;
+    //for(var s: number = 0; s < parsedJUnitTestResults.testsuite; s++)
+    //{
+        let suite: helperContracts.testSuite = parsedJUnitTestResults.testsuite;
 
-    result.testCaseTitle = "Login to the app";
-    result.outcome = "Passed";
+        if(suite.testcase)
+        {
+            for(var t: number = 0; t < suite.testcase.length; t++)
+            {
+                let testCase: helperContracts.testCase = suite.testcase[t];
 
-    return result;
+                if(stringIsEqual(testCase.classname, className) && stringIsEqual(testCase.name, methodName))
+                {
+                    return parsedTestCaseResult(testCase);
+                }
+            }
+        }
+    //}
+
+    return null;
 }
+
+function parsedTestCaseResult(testCase: helperContracts.testCase): apiContracts.testCaseResult | null
+{
+    try
+    {
+        let result: apiContracts.testCaseResult = {} as apiContracts.testCaseResult;
+
+        result.testCaseTitle = testCase.name[0];
+
+        if(isEmptyArray(testCase.failure) && isEmptyArray(testCase.skipped) && isEmptyArray(testCase.error))
+        {
+            result.outcome = "Passed";
+        }
+        else if(!isEmptyArray(testCase.failure))
+        {
+            result.outcome = "Failed";
+            result.errorMessage = squashArray(testCase.failure);
+        }
+        else if(!isEmptyArray(testCase.skipped))
+        {
+            result.outcome = "Failed";
+            result.errorMessage = squashArray(testCase.skipped);
+        }
+        else if(!isEmptyArray(testCase.error))
+        {
+            result.outcome = "Failed";
+            result.errorMessage = squashArray(testCase.error);
+        }
+        return result;
+    }
+    catch(err)
+    {
+        console.log(`Failed to parse test case result from input: ${err.message}`);
+    }
+    return null;
+}
+
+function squashArray(values: any[], propName: string = "message"): string
+{
+    let val: string = "";
+    
+    if(values)
+    {
+        for(var i: number = 0; i < values.length; i++)
+        {
+            val = val + `${concatArray(values[i].propName)}`;
+        }
+    }
+    return val;
+}
+function concatArray(values: string[], lineBreak: string = ";"): string
+{
+    let val: string = "";
+    
+    if(values)
+    {
+        for(var i: number = 0; i < values.length; i++)
+        {
+            if(i > 0)
+                val = val + lineBreak;
+
+            val = val + `${values[i]}`;
+        }
+    }
+    return val;
+}
+function isEmptyArray(values: any[]): boolean
+{
+    if(values && values.length > 0)
+        return false;
+    return true;
+}
+
+function stringIsEqual(values: string[], search: string): boolean
+{
+    for(var i: number = 0; i < values.length; i++)
+    {
+        if(values[i] == search)
+            return true;
+    }
+    return false;
+}
+
 function getFinalTestResultsOutcome(outcome: helperContracts.TestRunState): string
 {
     switch(outcome)
