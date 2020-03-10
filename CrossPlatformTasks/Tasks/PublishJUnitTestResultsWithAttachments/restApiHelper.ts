@@ -38,12 +38,12 @@ export class RestApiHelper {
 
                 if(restRes.statusCode == httpm.HttpCodes.OK && restRes.result)
                 {     
-                    console.log('Create test run SUCCESS');
+                    console.log('Created test run');
                     resolve(restRes.result);
                 }
                 else
                 {
-                    console.log('Create test run FAILED: ');
+                    console.log('Failed to create test run');
                     if(!restRes.result)
                         reject("Create test run failed: " + restRes.statusCode);
                     else
@@ -75,12 +75,12 @@ export class RestApiHelper {
 
                 if(restRes.statusCode == httpm.HttpCodes.OK && restRes.result)
                 {     
-                    console.log('Adding test result SUCCESS');
+                    console.log('Added test result');
                     resolve(restRes.result);
                 }
                 else
                 {
-                    console.log('Adding test result FAILED: ');
+                    console.log('Failed to add test result');
                     reject(restRes.result);
                 }
             }
@@ -109,12 +109,12 @@ export class RestApiHelper {
 
                 if(restRes.statusCode == httpm.HttpCodes.OK && restRes.result)
                 {     
-                    console.log('Adding test result SUCCESS');
+                    console.log('Added test result');
                     resolve(restRes.result);
                 }
                 else
                 {
-                    console.log('Adding test result FAILED: ');
+                    console.log('Failed to add test result');
                     reject(restRes.result);
                 }
             }
@@ -141,12 +141,12 @@ export class RestApiHelper {
 
             if(restRes.statusCode == httpm.HttpCodes.OK && restRes.result)
             {
-                console.log('Get test run results SUCCESS');
+                console.log('Retrieved test run results');
                 resolve(restRes.result.value);
             }
             else
             {
-                console.log('Get test run results FAILED: ');
+                console.log('Failed to get test run results');
                 reject(restRes.result?.value);
             }
             }
@@ -175,12 +175,12 @@ export class RestApiHelper {
 
                 if(restRes.statusCode == httpm.HttpCodes.OK && restRes.result)
                 {     
-                    console.log('Completing test run SUCCESS');
+                    console.log('Completed test run');
                     resolve(restRes.result);
                 }
                 else
                 {
-                    console.log('Completing test run FAILED: ');
+                    console.log('Failed to complete test run');
                     reject(restRes.result);
                 }
             }
@@ -205,12 +205,12 @@ export class RestApiHelper {
 
                 if(restRes.statusCode == httpm.HttpCodes.OK && restRes.result)
                 {     
-                    console.log('Created test run attachment SUCCESS');
+                    console.log('Created test run attachment');
                     resolve(restRes.result);
                 }
                 else
                 {
-                    console.log('Created test run attachment FAILED: ');
+                    console.log('Failed to create test run attachment');
                     reject(restRes.result);
                 }
             }

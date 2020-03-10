@@ -166,7 +166,7 @@ async function uploadGeneralAttachments(testRunId: number, runSettings: helperCo
             let matchedFiles: string[] = matchedPaths.filter((itemPath: string) => !tl.stats(itemPath).isDirectory()); // filter-out directories
 
             // copy the files to the target folder
-            console.log(tl.loc('FoundNFiles', matchedFiles.length));
+            console.log("Located " + matchedFiles.length + " files.");
             
             if(matchedFiles.length > 0){
                 for(var i: number = 0; i < matchedFiles.length; i++)
@@ -183,7 +183,7 @@ async function uploadGeneralAttachments(testRunId: number, runSettings: helperCo
 
                     if(response == null)
                     {
-                        throw new Error('Failed to add test results');
+                        throw new Error('Failed to add test results attachment');
                     }
                 };
             }
@@ -211,7 +211,6 @@ async function uploadTestCaseResults(testRunId: number, runSettings: helperContr
     return new Promise<helperContracts.TestRunState>(async (resolve, reject)=> {
         try
         {
-            var sizeCount: number = 0;
             let finalOutcome: helperContracts.TestRunState = helperContracts.TestRunState.Completed;
 
             var testResults: apiContracts.testCaseResult[] = [];
@@ -234,19 +233,18 @@ async function uploadTestCaseResults(testRunId: number, runSettings: helperContr
                 //TODO
                 //let existingRecord: apiContracts.testCaseResult = indexedTestRunResults[entry.testCaseId][entry.testSuiteId];
 
-                if(existingRecord)
+                if(existingRecord && existingRecord.id)
                 {
                     let outcome: apiContracts.testCaseResult =  {} as apiContracts.testCaseResult
                     outcome.id = existingRecord.id;
-                    outcome.outcome = (testResult ? testResult.outcome : "Not Applicable");
+                    outcome.outcome = (testResult ? testResult.outcome : "NotExecuted");
                     outcome.errorMessage = (testResult ? testResult.errorMessage : "");
                     outcome.state = "Completed";
 
                     testResults.push(outcome);
                 }
-                sizeCount++;
 
-                if(testResults.length > 0 && (i == runSettings.jsonTestCaseMapping.length - 1 || sizeCount >= runSettings.apiBatchSize))
+                if(testResults.length > 0 && (i == runSettings.jsonTestCaseMapping.length - 1 || testResults.length >= runSettings.apiBatchSize))
                 {
                     console.log('Sending batch of test results.');
 
@@ -257,7 +255,6 @@ async function uploadTestCaseResults(testRunId: number, runSettings: helperContr
                         throw new Error('Failed to add test results');
                     }
 
-                    sizeCount = 0;
                     testResults = [];
                 }
             }
@@ -364,7 +361,7 @@ function parsedTestCaseResult(testCase: helperContracts.testCase): apiContracts.
         {
             result.outcome = "Failed";
             result.errorMessage = squashArray(testCase.failure);
-            result.failureType = squashArray(testCase.failure, "type");
+            //result.failureType = squashArray(testCase.failure, "type");
         }
         else if(!isEmptyArray(testCase.skipped))
         {
@@ -376,7 +373,7 @@ function parsedTestCaseResult(testCase: helperContracts.testCase): apiContracts.
         {
             result.outcome = "Error";
             result.errorMessage = squashArray(testCase.error);
-            result.failureType = squashArray(testCase.failure, "type");
+            //result.failureType = squashArray(testCase.failure, "type");
         }
         return result;
     }
