@@ -4,7 +4,7 @@ import * as ttm from 'azure-pipelines-task-lib/mock-test';
 
 describe('PublishJUnitTestResults', function () {
     it('should succeed with simple inputs', function(done: MochaDone) {
-        this.timeout(10000);
+        this.timeout(99999999);
 
         let tp = path.join(__dirname, 'success.js');
         let tr: ttm.MockTestRunner = new ttm.MockTestRunner(tp);

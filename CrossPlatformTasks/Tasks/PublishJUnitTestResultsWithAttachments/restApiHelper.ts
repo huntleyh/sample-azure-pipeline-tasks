@@ -1,7 +1,11 @@
 import * as rc from 'typed-rest-client/RestClient';
+import tl = require('azure-pipelines-task-lib/task');
 import * as contracts from './azdoApiContracts';
 import * as handlers from 'typed-rest-client/handlers';
 import * as httpm from 'typed-rest-client/HttpClient';
+import url = require('url');
+import typedutil = require("typed-rest-client/Util");
+import util from "./taskUtil";
 
 export class RestApiHelper {
     private _baseUrl: string;
@@ -19,6 +23,40 @@ export class RestApiHelper {
         this._baseUrl = baseUrl;
 
         this._rest = new rc.RestClient('publish-junit-tests-helper', this._baseUrl, [authenticationHandler]);
+        console.log('Instantiated rest client');
+        console.log('Found ' + token);
+    }
+    
+    async getTestPoints(testPlanId: number, testSuiteIds: string[], testConfiguration: number): Promise<number[]> {
+        return new Promise<number[]>(async (resolve, reject)=> {
+            try
+            {
+                //GET https://dev.azure.com/{organization}/{project}/_apis/test/Plans/{planId}/Suites/{suiteId}/points?api-version=5.1
+                let vals: number[] = [];
+                var restRes: rc.IRestResponse<contracts.testPointResponse>;
+
+                for(var i: number = 0; i < testSuiteIds.length; i++)
+                {
+                    let suiteId: string = testSuiteIds[i];
+
+                    let restRes: rc.IRestResponse<contracts.testPointResponse> = 
+                                await this._rest.get<contracts.testPointResponse>('_apis/test/Plans/' + testPlanId + '/Suites/' + suiteId + '/points?configurationId='+ testConfiguration + '&api-version=5.1');
+
+                    
+                    if(restRes.statusCode == httpm.HttpCodes.OK && restRes.result)
+                    {
+                        for(var resIndex: number = 0; resIndex < restRes.result.count; resIndex++)
+                            vals.push(restRes.result.value[resIndex].id as number);
+                    }
+                }
+                return resolve(vals);
+            }
+            catch(exception)
+            {
+                console.log("Something went wrong retrieving list of test points: " + exception.message);
+                reject(exception.message);
+            }
+        });
     }
 
     /**
@@ -30,6 +68,11 @@ export class RestApiHelper {
         return new Promise<contracts.testRunResponse>(async (resolve, reject)=> {
             try
             {
+                
+                let url: string =  typedutil.getUrl('_apis/test/runs?api-version=5.1' , this._baseUrl);
+
+                console.log("3rd Generated URL: " + url);
+
                 let restRes: rc.IRestResponse<contracts.testRunResponse> = 
                                     await this._rest.create<contracts.testRunResponse>('_apis/test/runs?api-version=5.1', reqBody);
 
@@ -44,10 +87,16 @@ export class RestApiHelper {
                 else
                 {
                     console.log('Failed to create test run');
+                    if(restRes.statusCode == httpm.HttpCodes.NotFound)
+                    {
+                        console.log("Please ensure the target URL exists and also the specified test points [" + util.concatArray(reqBody.pointIds) + "] exist.");
+                    }
                     if(!restRes.result)
                         reject("Create test run failed: " + restRes.statusCode);
                     else
+                    {
                         reject(restRes.result);
+                    }
                 }
             }
             catch(exception)

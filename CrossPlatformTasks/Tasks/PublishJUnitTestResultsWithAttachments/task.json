@@ -16,7 +16,7 @@
     "author": "AgileMindset",
     "version": {
         "Major": 0,
-        "Minor": 8,
+        "Minor": 14,
         "Patch": 0
     },
     "groups": [
@@ -48,7 +48,7 @@
         },
         {
             "name": "jsonTestCaseMappingFile",
-            "type": "string",
+            "type": "filePath",
             "label": "Test Case Mapping File",
             "defaultValue": "",
             "required": true,

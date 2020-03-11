@@ -1,12 +1,13 @@
 export interface inputContract
 {
+    testPoints: number[];
     testResultsOutputFile: string;
     parsedJUnitTestResults: jUnitTestResultRoot;
     targetType: string;
     jsonTestCaseMappingFile: string;
     inlineJsonTestCaseMapping: string;
     testPlanId: number;
-    testSuiteStrings: string[];
+    testSuiteIds: string[];
     testConfiguration: number;
     generalAttachments: string[];
     sourceFolder: string;

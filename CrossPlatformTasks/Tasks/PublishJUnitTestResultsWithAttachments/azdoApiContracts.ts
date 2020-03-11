@@ -4,16 +4,28 @@ export interface testRunRequestBody{
     name: string;
     testPlanId: number;
     automated: boolean;
+    owner: identityRef;
+    build: shallowReference;
+    releaseUri: string;
 }
 
+export interface shallowReference{
+    id: string;
+    name: string;
+    url: string;
+}
+
+export interface identityRef{
+    id: string;
+    uniqueName: string;
+    url: string;
+}
 export interface testRunUpdateRequestBody{
     state: string;
-
 }
 
 export interface testRunUpdateResponse{
     state: string;
-
 }
 
 export interface testRunResponse{
@@ -42,6 +54,7 @@ export interface testResultResponse{
 
 export interface testCaseResult{
     id: number;
+    url: string;
     testPlan: {
         id: number
     };
@@ -68,6 +81,24 @@ export interface testCaseResultResponse{
     value: testCaseResult[]
 }
 
+export interface testPointResponse{
+    count: number;
+    value: testPoint[]
+}
+
+export interface testPoint{
+    id: number;
+    url: string;
+    outcome: string;
+    state: string;
+    testCase: testCaseResult;
+    configuration: testConfiguration;
+}
+export interface testConfiguration
+{
+    id: number;
+    name: string;
+}
 export interface testRunAttachmentRequestBody{
     attachmentType: string;
     comment: string;

@@ -1,17 +1,15 @@
 import tl = require('azure-pipelines-task-lib/task');
 import tr = require('azure-pipelines-task-lib/toolrunner');
 import path = require('path');
+import url = require('url');
 import fs = require('fs');
-import util = require("util");
+import util from "./taskUtil";
 import * as helperContracts from './helperContracts';
 import * as apiContracts from './azdoApiContracts';
 import * as rh from './restApiHelper';
-//import { match } from 'assert';
-var xml2js = require('xml2js');
 
-require('util.promisify').shim();
-//var request = require('request');
-//require('request').debug = true
+
+var xml2js = require('xml2js');
 
 async function run() {
     try {
@@ -23,11 +21,11 @@ async function run() {
         runSettings.jsonTestCaseMappingFile = tl.getPathInput('jsonTestCaseMappingFile', (runSettings.targetType == 'filePath') ? true : false) as string;
         runSettings.inlineJsonTestCaseMapping = tl.getInput('inlineJsonTestCaseMapping', (runSettings.targetType == 'inline') ? true : false) as string;
         runSettings.testPlanId = parseInt(`${tl.getInput('testPlan', true)}`);
-        runSettings.testSuiteStrings = tl.getDelimitedInput('testSuite', ',', true);
+        runSettings.testSuiteIds = tl.getDelimitedInput('testSuite', ',', true);
         runSettings.testConfiguration = parseInt(`${tl.getInput('testConfiguration', true)}`);
         runSettings.testResultsOutputFile = tl.getInput('testResultsOutputFile', true) as string;
         runSettings.generalAttachments = tl.getDelimitedInput('generalAttachments', '\n', false);
-        runSettings.sourceFolder = getStringValue(tl.getPathInput('sourceFolder', true, false));
+        runSettings.sourceFolder = util.getStringValue(tl.getPathInput('sourceFolder', true, false));
         runSettings.apiBatchSize = (tl.getVariable('JUnitTestCase.BatchSize') && tl.getVariable('JUnitTestCase.BatchSize') != '' ? parseInt(`${tl.getVariable('JUnitTestCase.BatchSize')}`) : 20);
         
         let jsonMapping: string = getTestCaseJsonMapping(`${runSettings.targetType}`, `${runSettings.jsonTestCaseMappingFile}`, `${runSettings.inlineJsonTestCaseMapping}`);
@@ -41,9 +39,23 @@ async function run() {
         runSettings.project = `${tl.getVariable('System.TeamProject')}`;
         runSettings.accessToken = `${tl.getVariable('System.AccessToken')}`;
         
-        let baseUrl: string = `${runSettings.organization}/${runSettings.project}`
+        tl.debug('Retrieved organization: ' + runSettings.organization);
+        tl.debug('Retrieved project: ' + runSettings.project);
+        tl.debug('Retrieved accessToken: ' + runSettings.accessToken);
+        tl.debug('testPlanId=' + runSettings.testPlanId);
+        tl.debug('testSuiteIds=' + util.concatArray(runSettings.testSuiteIds));
+        tl.debug('testConfiguration=' + runSettings.testConfiguration);
+        tl.debug('testResultsOutputFile=' + runSettings.testResultsOutputFile);
+        tl.debug('generalAttachments=' + runSettings.generalAttachments);
+        tl.debug('sourceFolder=' + runSettings.sourceFolder);
+        tl.debug('apiBatchSize (env:JUnitTestCase.BatchSize)=' + runSettings.apiBatchSize);
+
+        let baseUrl: string = url.resolve(runSettings.organization, runSettings.project);
+        tl.debug('Creating httpClient with: ' + baseUrl);
         const helper: rh.RestApiHelper = new rh.RestApiHelper(baseUrl, runSettings.accessToken);
         
+        runSettings.testPoints =  await helper.getTestPoints(runSettings.testPlanId, runSettings.testSuiteIds, runSettings.testConfiguration);
+
         let reqBody: apiContracts.testRunRequestBody = getTestRunRequestBody(runSettings);
         
         let testRunId: number = -1;
@@ -104,15 +116,15 @@ async function parseJUnitTestResultsFile(filePath: string): Promise<helperContra
     return new Promise(async (resolve, reject)=> {
         try
         {
-            console.log('Reading JUnit test results XML')
+            tl.debug('Reading JUnit test results XML')
             var contents: string = fs.readFileSync(filePath, 'utf8');
             var parser = new xml2js.Parser({mergeAttrs: true});
             var result = await parser.parseStringPromise(contents);
-            console.log('Parsing XML to JS')
+            tl.debug('Parsing XML to JS')
             var obj = JSON.stringify(result);
             var root: helperContracts.jUnitTestResultRoot = (JSON.parse(obj) as helperContracts.jUnitTestResultRoot);
 
-            console.log('Returning converted test suites results')
+            tl.debug('Returning converted test suites results')
             resolve(root);
         }
         catch(err)
@@ -121,17 +133,6 @@ async function parseJUnitTestResultsFile(filePath: string): Promise<helperContra
             reject(err);
         }
     });
-}
-/**
- * Return the string value of the provide val parameter or null 
- * @param val 
- */
-function getStringValue(val: string | undefined): string
-{
-    if(!val)
-        return "";
-    else
-        return val.valueOf();
 }
 /**
  * Create the request body to be used in creating the new test run
@@ -146,10 +147,38 @@ function getTestRunRequestBody(settings: helperContracts.inputContract): apiCont
     body.plan = {
               id: settings.testPlanId
             };
-    body.pointIds = [
-        settings.testConfiguration
-            ];
+    body.pointIds = settings.testPoints;
 
+    if(tl.getVariable('Build.RequestedFor') && util.getStringValue(tl.getVariable('Build.RequestedFor')) != "")
+    {
+        body.owner = {} as apiContracts.identityRef;
+        body.owner.id = util.getStringValue(tl.getVariable('Build.RequestedFor'));
+    }    
+    if(tl.getVariable('Build.BuildId') && util.getStringValue(tl.getVariable('Build.BuildId')) != "")
+    {
+        body.build = {} as apiContracts.shallowReference;
+        body.build.id = util.getStringValue(tl.getVariable('Build.BuildId'));
+        body.build.url = util.getStringValue(tl.getVariable('Build.BuildUri'));
+    }    
+    if(tl.getVariable('Release.ReleaseUri') && util.getStringValue(tl.getVariable('Release.ReleaseUri')) != "")
+    {
+        body.releaseUri = util.getStringValue(tl.getVariable('Release.ReleaseUri'));
+    }
+/*
+        envVars = this.addToProcessEnvVars(envVars, 'owner', tl.getVariable('Build.RequestedFor'));
+        envVars = this.addToProcessEnvVars(envVars, 'buildid', tl.getVariable('Build.BuildId'));
+        envVars = this.addToProcessEnvVars(envVars, 'builduri', tl.getVariable('Build.BuildUri'));
+        envVars = this.addToProcessEnvVars(envVars, 'releaseuri', tl.getVariable('Release.ReleaseUri'));
+        envVars = this.addToProcessEnvVars(envVars, 'releaseenvironmenturi', tl.getVariable('Release.EnvironmentUri'));
+        envVars = this.addToProcessEnvVars(envVars, 'phasename', tl.getVariable('System.PhaseName'));
+        envVars = this.addToProcessEnvVars(envVars, 'phaseattempt', tl.getVariable('System.PhaseAttempt'));
+        envVars = this.addToProcessEnvVars(envVars, 'stagename', tl.getVariable('System.StageName'));
+        envVars = this.addToProcessEnvVars(envVars, 'stageattempt', tl.getVariable('System.StageAttempt'));
+        envVars = this.addToProcessEnvVars(envVars, 'jobname', tl.getVariable('System.JobName'));
+        envVars = this.addToProcessEnvVars(envVars, 'jobattempt', tl.getVariable('System.JobAttempt'));
+        envVars = this.addToProcessEnvVars(envVars, 'jobidentifier', tl.getVariable('System.JobIdentifier'));
+        envVars = this.addToProcessEnvVars(envVars, 'agenttempdirectory', tl.getVariable('Agent.TempDirectory'));
+*/
     return body;
 }
 
@@ -166,7 +195,7 @@ async function uploadGeneralAttachments(testRunId: number, runSettings: helperCo
             let matchedFiles: string[] = matchedPaths.filter((itemPath: string) => !tl.stats(itemPath).isDirectory()); // filter-out directories
 
             // copy the files to the target folder
-            console.log("Located " + matchedFiles.length + " files.");
+            tl.debug("Located " + matchedFiles.length + " files.");
             
             if(matchedFiles.length > 0){
                 for(var i: number = 0; i < matchedFiles.length; i++)
@@ -219,17 +248,17 @@ async function uploadTestCaseResults(testRunId: number, runSettings: helperContr
             //TODO: Index the results to improve performance
             //var indexedTestRunResults = indexExistingResults(testRunExistingResults);
 
-            console.log('Retrieved ' + testRunExistingResults.length + ' existing results');
-            console.log('Posting testcase results');
-            console.log('Testcase mappings count: ' + runSettings.jsonTestCaseMapping.length);
+            tl.debug('Retrieved ' + testRunExistingResults.length + ' existing results');
+            tl.debug('Posting testcase results');
+            tl.debug('Testcase mappings count: ' + runSettings.jsonTestCaseMapping.length);
 
             for(var i: number = 0; i < runSettings.jsonTestCaseMapping.length; i++){
                 let entry: any = runSettings.jsonTestCaseMapping[i];            
-                console.log("Retrieving the JUnit test result for test case " + entry.testCaseId + " with testSuiteId " + entry.testSuiteId);
+                tl.debug("Retrieving the JUnit test result for test case " + entry.testCaseId + " with testSuiteId " + entry.testSuiteId);
                 let testResult: apiContracts.testCaseResult | null = getJUnitTestResult(runSettings.parsedJUnitTestResults, entry.className, entry.methodName);
-                console.log("Retrieving existing test run result for test case " + entry.testCaseId + " with testSuiteId " + entry.testSuiteId);
+                tl.debug("Retrieving existing test run result for test case " + entry.testCaseId + " with testSuiteId " + entry.testSuiteId);
                 let existingRecord: apiContracts.testCaseResult = getTargetTestResult(parseInt(entry.testCaseId), parseInt(entry.testSuiteId), testRunExistingResults);
-                console.log("Retrieved " + existingRecord);
+                tl.debug("Retrieved " + existingRecord);
                 //TODO
                 //let existingRecord: apiContracts.testCaseResult = indexedTestRunResults[entry.testCaseId][entry.testSuiteId];
 
@@ -269,24 +298,24 @@ async function uploadTestCaseResults(testRunId: number, runSettings: helperContr
     });
 }
 function getTargetTestResult(testCaseId: number, testSuiteId: number, existingTestResults: apiContracts.testCaseResult[]): apiContracts.testCaseResult {
-    console.log("Recieved test case: " + testCaseId + " and suite: " + testSuiteId + " with existing results: " + existingTestResults.length);
+    tl.debug("Recieved test case: " + testCaseId + " and suite: " + testSuiteId + " with existing results: " + existingTestResults.length);
 
     let emptyResult: apiContracts.testCaseResult = {} as apiContracts.testCaseResult;
     for(var index: number = 0; index < existingTestResults.length; index++)
     {
-        console.log("inside loop");
+        tl.debug("inside loop");
         let entry = existingTestResults[index];
 
-        console.log("Entry is " + entry);
-        console.log("TestCase is " + entry.testCase);
-        console.log("Checking entry with " + existingTestResults[index].testCase.id  + " suite id " + existingTestResults[index]?.testSuite?.id);
+        tl.debug("Entry is " + entry);
+        tl.debug("TestCase is " + entry.testCase);
+        tl.debug("Checking entry with " + existingTestResults[index].testCase.id  + " suite id " + existingTestResults[index]?.testSuite?.id);
         if(existingTestResults[index].testCase.id == testCaseId && (!existingTestResults[index].testSuite || (existingTestResults[index].testSuite && existingTestResults[index].testSuite.id == testSuiteId)))
         {
-            console.log("Found matching test result for test case " + testCaseId + " and suite " + testSuiteId);
+            tl.debug("Found matching test result for test case " + testCaseId + " and suite " + testSuiteId);
             return existingTestResults[index];
         }
     }
-    console.log("No matching test result found for testCaseId" + testCaseId + "/ testSuiteId " + testSuiteId + ".\n Please check the specified testCaseId and testSuiteId in your JSON mapping");
+    tl.debug("No matching test result found for testCaseId" + testCaseId + "/ testSuiteId " + testSuiteId + ".\n Please check the specified testCaseId and testSuiteId in your JSON mapping");
     return emptyResult;
 }
 /**
@@ -296,17 +325,17 @@ function getTargetTestResult(testCaseId: number, testSuiteId: number, existingTe
 function indexExistingResults(existingTestResults: apiContracts.testCaseResult[]): { [id: number] : { [id:number] : apiContracts.testCaseResult }; }{
     var indexedTestCaseResults: { [id: number] : { [id:number] : apiContracts.testCaseResult }; } = {};
 
-    console.log("Indexing test case results");
+    tl.debug("Indexing test case results");
     for(var i: number = 0; i < existingTestResults.length; i++)
     {
         let entry = existingTestResults[i];
 
-        console.log("Checking for entry test case id: " + entry.testCase.id);
+        tl.debug("Checking for entry test case id: " + entry.testCase.id);
         if(!indexedTestCaseResults[entry.testCase.id])
         {
             try
             {
-                console.log("Test case id: " + entry.testCase.id + " does not exist. Creating new entry.");
+                tl.debug("Test case id: " + entry.testCase.id + " does not exist. Creating new entry.");
                 indexedTestCaseResults[entry.testCase.id] =  [];
             }
             catch(error)
@@ -315,7 +344,7 @@ function indexExistingResults(existingTestResults: apiContracts.testCaseResult[]
             }
         }
 
-        console.log("Assigning entry to the test suite id: " + entry.testSuite.id);
+        tl.debug("Assigning entry to the test suite id: " + entry.testSuite.id);
         indexedTestCaseResults[entry.testCase.id][entry.testSuite.id] = entry;
     }
     console.log("Returning indexed results");
@@ -334,7 +363,7 @@ function getJUnitTestResult(parsedJUnitTestResults: helperContracts.jUnitTestRes
             {
                 let testCase: helperContracts.testCase = suite.testcase[t];
 
-                if(stringIsEqual(testCase.classname, className) && stringIsEqual(testCase.name, methodName))
+                if(util.stringIsEqual(testCase.classname, className) && util.stringIsEqual(testCase.name, methodName))
                 {
                     return parsedTestCaseResult(testCase);
                 }
@@ -353,26 +382,26 @@ function parsedTestCaseResult(testCase: helperContracts.testCase): apiContracts.
 
         result.testCaseTitle = testCase.name[0];
 
-        if(isEmptyArray(testCase.failure) && isEmptyArray(testCase.skipped) && isEmptyArray(testCase.error))
+        if(util.isEmptyArray(testCase.failure) && util.isEmptyArray(testCase.skipped) && util.isEmptyArray(testCase.error))
         {
             result.outcome = "Passed";
         }
-        else if(!isEmptyArray(testCase.failure))
+        else if(!util.isEmptyArray(testCase.failure))
         {
             result.outcome = "Failed";
-            result.errorMessage = squashArray(testCase.failure);
+            result.errorMessage = util.squashArray(testCase.failure);
             //result.failureType = squashArray(testCase.failure, "type");
         }
-        else if(!isEmptyArray(testCase.skipped))
+        else if(!util.isEmptyArray(testCase.skipped))
         {
             result.outcome = "NotExecuted";
             //result.errorMessage = squashArray(testCase.skipped);
             //result.failureType = squashArray(testCase.failure, "type");
         }
-        else if(!isEmptyArray(testCase.error))
+        else if(!util.isEmptyArray(testCase.error))
         {
             result.outcome = "Error";
-            result.errorMessage = squashArray(testCase.error);
+            result.errorMessage = util.squashArray(testCase.error);
             //result.failureType = squashArray(testCase.failure, "type");
         }
         return result;
@@ -382,52 +411,6 @@ function parsedTestCaseResult(testCase: helperContracts.testCase): apiContracts.
         console.log(`Failed to parse test case result from input: ${err.message}`);
     }
     return null;
-}
-
-function squashArray(values: any[], propName: string = "message"): string
-{
-    let val: string = "";
-    
-    if(values)
-    {
-        for(var i: number = 0; i < values.length; i++)
-        {
-            val = val + `${concatArray(values[i][propName])}`;
-        }
-    }
-    return val;
-}
-function concatArray(values: string[], lineBreak: string = ";"): string
-{
-    let val: string = "";
-    
-    if(values)
-    {
-        for(var i: number = 0; i < values.length; i++)
-        {
-            if(i > 0)
-                val = val + lineBreak;
-
-            val = val + `${values[i]}`;
-        }
-    }
-    return val;
-}
-function isEmptyArray(values: any[]): boolean
-{
-    if(values && values.length > 0)
-        return false;
-    return true;
-}
-
-function stringIsEqual(values: string[], search: string): boolean
-{
-    for(var i: number = 0; i < values.length; i++)
-    {
-        if(values[i] == search)
-            return true;
-    }
-    return false;
 }
 
 function getFinalTestResultsOutcome(outcome: helperContracts.TestRunState): string
@@ -450,7 +433,7 @@ function getFinalTestResultsOutcome(outcome: helperContracts.TestRunState): stri
 }
 function getTestRunTitle(): string
 {
-    console.log('Generating test run title.');
+    tl.debug('Generating test run title.');
     let definitionName = tl.getVariable('BUILD_DEFINITIONNAME');
     let buildOrReleaseName = tl.getVariable('BUILD_BUILDNUMBER');
 
@@ -467,7 +450,7 @@ function getTestCaseJsonMapping(targetType: string, mappingFile: string, inlineJ
 
     if (targetType == 'filePath')
     {
-        console.log('Retrieving json mapping file content.');
+        tl.debug('Retrieving json mapping file content.');
         let filePath: string | null = null;
 
         if(fs.existsSync(mappingFile))
