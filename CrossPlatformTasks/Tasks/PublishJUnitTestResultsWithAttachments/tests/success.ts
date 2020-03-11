@@ -16,7 +16,7 @@ tmr.setInput('testSuite', '942'); //'87,98');
 tmr.setInput('testConfiguration', '25'); //'212');
 tmr.setInput('generalAttachments', '**/*.html\n**/*.txt\n**/*.jpg');
 tmr.setInput('sourceFolder', path.normalize(testPath));
-tmr.setInput('testResultsOutputFile','C:\\GitHubRepos\\sample-azure-pipeline-tasks\\CrossPlatformTasks\\Tasks\\PublishJUnitTestResultsWithAttachments\\tests\\sample-files\\TEST-Multiple.xml');//'C:\\GitHubRepos\\simplefiles\\JUnitTestResult\\TEST-main.java.com.Tests.DMA_Smoke_SimpleLogin.xml')
+tmr.setInput('testResultsOutputFile','C:\\GitHubRepos\\simplefiles\\JUnitTestResult\\test-result.xml');//'C:\\GitHubRepos\\sample-azure-pipeline-tasks\\CrossPlatformTasks\\Tasks\\PublishJUnitTestResultsWithAttachments\\tests\\sample-files\\TEST-Multiple.xml');//'C:\\GitHubRepos\\simplefiles\\JUnitTestResult\\TEST-main.java.com.Tests.DMA_Smoke_SimpleLogin.xml')
 let answers: ma.TaskLibAnswers = {} as ma.TaskLibAnswers;
 
 answers.checkPath = { };

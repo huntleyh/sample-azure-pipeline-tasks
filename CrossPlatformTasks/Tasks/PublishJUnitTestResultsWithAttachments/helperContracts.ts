@@ -33,9 +33,20 @@ export enum TestRunState
     Aborted = 3, 
     Waiting = 4
 }
+
+export interface jUnitTestResultRootGeneric
+{
+    testsuites: testSuites;
+    testsuite: testSuite
+}
+export interface testSuites
+{
+    duration: string[];
+    testsuite: testSuite[];
+}
 export interface jUnitTestResultRoot
 {
-    testsuite: testSuite
+    testsuites: testSuite[];
 }
 /*export interface testSuite
 {

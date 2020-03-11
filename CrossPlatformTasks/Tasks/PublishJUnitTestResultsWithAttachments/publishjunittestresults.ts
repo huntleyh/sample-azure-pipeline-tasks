@@ -122,7 +122,19 @@ async function parseJUnitTestResultsFile(filePath: string): Promise<helperContra
             var result = await parser.parseStringPromise(contents);
             tl.debug('Parsing XML to JS')
             var obj = JSON.stringify(result);
-            var root: helperContracts.jUnitTestResultRoot = (JSON.parse(obj) as helperContracts.jUnitTestResultRoot);
+            var generic: helperContracts.jUnitTestResultRootGeneric = (JSON.parse(obj) as helperContracts.jUnitTestResultRootGeneric);
+            var root: helperContracts.jUnitTestResultRoot = {} as helperContracts.jUnitTestResultRoot;
+
+            if(generic.testsuite && generic.testsuite.testcase && generic.testsuite.testcase.length > 0)
+            {
+                root.testsuites = [];
+                root.testsuites.push(generic.testsuite);
+            }
+            
+            if(generic.testsuites)
+            {
+                root.testsuites = generic.testsuites.testsuite;
+            }
 
             tl.debug('Returning converted test suites results')
             resolve(root);
@@ -292,7 +304,7 @@ async function uploadTestCaseResults(testRunId: number, runSettings: helperContr
         }
         catch(err)
         {
-            console.log("Unable to update test case results" + err.message);
+            console.log("Unable to update test case results: " + err.message);
             reject(err);
         }
     });
@@ -353,9 +365,9 @@ function indexExistingResults(existingTestResults: apiContracts.testCaseResult[]
 
 function getJUnitTestResult(parsedJUnitTestResults: helperContracts.jUnitTestResultRoot, className: string, methodName: string): apiContracts.testCaseResult | null
 {
-    //for(var s: number = 0; s < parsedJUnitTestResults.testsuite; s++)
-    //{
-        let suite: helperContracts.testSuite = parsedJUnitTestResults.testsuite;
+    for(var s: number = 0; s < parsedJUnitTestResults.testsuites.length; s++)
+    {
+        let suite: helperContracts.testSuite = parsedJUnitTestResults.testsuites[s];
 
         if(suite.testcase)
         {
@@ -369,7 +381,7 @@ function getJUnitTestResult(parsedJUnitTestResults: helperContracts.jUnitTestRes
                 }
             }
         }
-    //}
+    }
 
     return null;
 }
