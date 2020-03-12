@@ -172,9 +172,15 @@ function getTestRunRequestBody(settings: helperContracts.inputContract): apiCont
         body.build.id = util.getStringValue(tl.getVariable('Build.BuildId'));
         body.build.url = util.getStringValue(tl.getVariable('Build.BuildUri'));
     }    
-    if(tl.getVariable('Release.ReleaseUri') && util.getStringValue(tl.getVariable('Release.ReleaseUri')) != "")
+    if(tl.getVariable('Release.ReleaseId') && tl.getVariable('Release.EnvironmentId') && tl.getVariable('Release.ReleaseUri'))
     {
+        body.releaseReference = {} as apiContracts.releaseReference;
+        body.releaseReference.id = parseInt(util.getStringValue(tl.getVariable('Release.ReleaseId')));
+        body.releaseReference.name = util.getStringValue(tl.getVariable('Release.ReleaseName'));
+        body.releaseReference.environmentId = parseInt(util.getStringValue(tl.getVariable('Release.EnvironmentId')));
+
         body.releaseUri = util.getStringValue(tl.getVariable('Release.ReleaseUri'));
+        body.releaseEnvironmentUri = util.getStringValue(tl.getVariable('Release.EnvironmentUri'));
     }
 /*
         envVars = this.addToProcessEnvVars(envVars, 'owner', tl.getVariable('Build.RequestedFor'));

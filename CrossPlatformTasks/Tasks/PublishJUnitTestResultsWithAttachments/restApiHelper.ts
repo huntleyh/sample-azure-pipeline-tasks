@@ -23,8 +23,6 @@ export class RestApiHelper {
         this._baseUrl = baseUrl;
 
         this._rest = new rc.RestClient('publish-junit-tests-helper', this._baseUrl, [authenticationHandler]);
-        console.log('Instantiated rest client');
-        console.log('Found ' + token);
     }
     
     async getTestPoints(testPlanId: number, testSuiteIds: string[], testConfiguration: number): Promise<number[]> {
@@ -68,11 +66,6 @@ export class RestApiHelper {
         return new Promise<contracts.testRunResponse>(async (resolve, reject)=> {
             try
             {
-                
-                let url: string =  typedutil.getUrl('_apis/test/runs?api-version=5.1' , this._baseUrl);
-
-                console.log("3rd Generated URL: " + url);
-
                 let restRes: rc.IRestResponse<contracts.testRunResponse> = 
                                     await this._rest.create<contracts.testRunResponse>('_apis/test/runs?api-version=5.1', reqBody);
 

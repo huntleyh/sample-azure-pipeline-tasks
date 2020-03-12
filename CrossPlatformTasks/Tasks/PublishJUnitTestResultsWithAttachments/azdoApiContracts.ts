@@ -6,7 +6,9 @@ export interface testRunRequestBody{
     automated: boolean;
     owner: identityRef;
     build: shallowReference;
+    releaseReference: releaseReference;
     releaseUri: string;
+    releaseEnvironmentUri: string;
 }
 
 export interface shallowReference{
@@ -15,6 +17,12 @@ export interface shallowReference{
     url: string;
 }
 
+export interface releaseReference{
+    id: number;
+    name: string;
+    environmentId: number;
+    environmentName: string;
+}
 export interface identityRef{
     id: string;
     uniqueName: string;
