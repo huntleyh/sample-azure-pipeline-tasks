@@ -13,7 +13,8 @@ steps:
 - task: Npm@1
   inputs:
     command: 'custom'
-    customCommand: 'install -g tfx-cli'
+    workingDir: '$(ExtensionWorkingFolder)'
+    customCommand: 'install tfx-cli'
 - task: QueryAzureDevOpsExtensionVersion@2
   inputs:
     connectTo: 'VsTeam'
