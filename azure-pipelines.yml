@@ -10,10 +10,47 @@ pool:
   vmImage: 'ubuntu-latest'
 
 steps:
-- script: echo Hello, world!
-  displayName: 'Run a one-line script'
-
-- script: |
-    echo Add other tasks to build, test, and deploy your project.
-    echo See https://aka.ms/yaml
-  displayName: 'Run a multi-line script'
+- task: TfxInstaller@2
+  inputs:
+    version: 'v0.6.x'
+- task: QueryAzureDevOpsExtensionVersion@2
+  inputs:
+    connectTo: 'VsTeam'
+    connectedServiceName: 'huntley_marketplace'
+    publisherId: '$(PublisherId)'
+    extensionId: '$(ExtensionId)'
+    versionAction: 'Patch'
+    setBuildNumber: 'true'
+- task: Bash@3
+  inputs:
+    targetType: 'inline'
+    script: |
+      # Write your commands here
+      
+      echo 'Retrieved: $(QueryAzureDevOpsExtensionVersion.Extension.Version)'
+- task: Npm@1
+  inputs:
+    command: 'install'
+    workingDir: '$(ExtensionWorkingFolder)'
+- task: Bash@3
+  inputs:
+    targetType: 'inline'
+    script: |
+      # Compiling extension
+      tsc
+    workingDirectory: '$(ExtensionWorkingFolder)'
+- task: PackageAzureDevOpsExtension@2
+  inputs:
+    rootFolder: '$(RootManifestFolder)'
+    patternManifest: '$(ManifestFile)'
+    extensionVersion: '$(QueryAzureDevOpsExtensionVersion.Extension.Version)'
+    updateTasksVersion: false
+- task: PublishAzureDevOpsExtension@2
+  inputs:
+    connectTo: 'VsTeam'
+    connectedServiceName: 'huntley_marketplace'
+    fileType: 'manifest'
+    rootFolder: '$(RootManifestFolder)'
+    patternManifest: '$(ManifestFile)'
+    updateTasksVersion: false
+    shareWith: '$(ShareExtensionWith)'
