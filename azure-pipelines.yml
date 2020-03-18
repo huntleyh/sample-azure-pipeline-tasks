@@ -19,7 +19,7 @@ steps:
     connectedServiceName: 'huntley_marketplace'
     publisherId: '$(PublisherId)'
     extensionId: '$(ExtensionId)'
-    versionAction: 'Minor'
+    versionAction: 'Patch'
     setBuildNumber: 'true'
 - task: Bash@3
   inputs:
@@ -27,7 +27,7 @@ steps:
     script: |
       # Write your commands here
       
-      echo 'Retrieved: $(Extension.Version)'
+      echo 'Retrieved: $(QueryAzureDevOpsExtensionVersion.Extension.Version)'
 - task: Npm@1
   inputs:
     command: 'install'
@@ -35,5 +35,5 @@ steps:
 - task: PackageAzureDevOpsExtension@2
   inputs:
     rootFolder: '$(RootManifestFolder)'
-    extensionVersion: '$(Extension.Version)'
+    extensionVersion: '$(QueryAzureDevOpsExtensionVersion.Extension.Version)'
     updateTasksVersion: false
