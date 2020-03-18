@@ -10,11 +10,9 @@ pool:
   vmImage: 'ubuntu-latest'
 
 steps:
-- task: Npm@1
+- task: TfxInstaller@2
   inputs:
-    command: 'custom'
-    workingDir: '$(ExtensionWorkingFolder)'
-    customCommand: 'install tfx-cli'
+    version: 'v0.6.x'
 - task: QueryAzureDevOpsExtensionVersion@2
   inputs:
     connectTo: 'VsTeam'
@@ -30,6 +28,10 @@ steps:
       # Write your commands here
       
       echo 'Retrieved: $(Extension.Version)'
+- task: Npm@1
+  inputs:
+    command: 'install'
+    workingDir: '$(ExtensionWorkingFolder)'
 - task: PackageAzureDevOpsExtension@2
   inputs:
     rootFolder: '$(RootManifestFolder)'
