@@ -10,6 +10,10 @@ pool:
   vmImage: 'ubuntu-latest'
 
 steps:
+- task: Npm@1
+  inputs:
+    command: 'custom'
+    customCommand: 'install -g tfx-cli'
 - task: QueryAzureDevOpsExtensionVersion@2
   inputs:
     connectTo: 'VsTeam'
