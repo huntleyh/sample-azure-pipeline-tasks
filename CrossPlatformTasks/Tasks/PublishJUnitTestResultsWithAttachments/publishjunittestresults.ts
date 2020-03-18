@@ -182,21 +182,6 @@ function getTestRunRequestBody(settings: helperContracts.inputContract): apiCont
         body.releaseUri = util.getStringValue(tl.getVariable('Release.ReleaseUri'));
         body.releaseEnvironmentUri = util.getStringValue(tl.getVariable('Release.EnvironmentUri'));
     }
-/*
-        envVars = this.addToProcessEnvVars(envVars, 'owner', tl.getVariable('Build.RequestedFor'));
-        envVars = this.addToProcessEnvVars(envVars, 'buildid', tl.getVariable('Build.BuildId'));
-        envVars = this.addToProcessEnvVars(envVars, 'builduri', tl.getVariable('Build.BuildUri'));
-        envVars = this.addToProcessEnvVars(envVars, 'releaseuri', tl.getVariable('Release.ReleaseUri'));
-        envVars = this.addToProcessEnvVars(envVars, 'releaseenvironmenturi', tl.getVariable('Release.EnvironmentUri'));
-        envVars = this.addToProcessEnvVars(envVars, 'phasename', tl.getVariable('System.PhaseName'));
-        envVars = this.addToProcessEnvVars(envVars, 'phaseattempt', tl.getVariable('System.PhaseAttempt'));
-        envVars = this.addToProcessEnvVars(envVars, 'stagename', tl.getVariable('System.StageName'));
-        envVars = this.addToProcessEnvVars(envVars, 'stageattempt', tl.getVariable('System.StageAttempt'));
-        envVars = this.addToProcessEnvVars(envVars, 'jobname', tl.getVariable('System.JobName'));
-        envVars = this.addToProcessEnvVars(envVars, 'jobattempt', tl.getVariable('System.JobAttempt'));
-        envVars = this.addToProcessEnvVars(envVars, 'jobidentifier', tl.getVariable('System.JobIdentifier'));
-        envVars = this.addToProcessEnvVars(envVars, 'agenttempdirectory', tl.getVariable('Agent.TempDirectory'));
-*/
     return body;
 }
 
@@ -375,14 +360,16 @@ function getJUnitTestResult(parsedJUnitTestResults: helperContracts.jUnitTestRes
     {
         let suite: helperContracts.testSuite = parsedJUnitTestResults.testsuites[s];
 
+        tl.debug('Checking test suite ' + suite.name);
         if(suite.testcase)
         {
             for(var t: number = 0; t < suite.testcase.length; t++)
             {
                 let testCase: helperContracts.testCase = suite.testcase[t];
-
+                tl.debug('Checking test case [' + testCase.name + ',' + testCase.classname + ']');
                 if(util.stringIsEqual(testCase.classname, className) && util.stringIsEqual(testCase.name, methodName))
                 {
+                    tl.debug('Located test case result for ' + testCase.classname);
                     return parsedTestCaseResult(testCase);
                 }
             }
@@ -422,6 +409,8 @@ function parsedTestCaseResult(testCase: helperContracts.testCase): apiContracts.
             result.errorMessage = util.squashArray(testCase.error);
             //result.failureType = squashArray(testCase.failure, "type");
         }
+        
+        tl.debug(testCase.classname + ' marked as: ' + result.outcome);
         return result;
     }
     catch(err)
