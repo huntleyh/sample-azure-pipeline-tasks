@@ -32,8 +32,25 @@ steps:
   inputs:
     command: 'install'
     workingDir: '$(ExtensionWorkingFolder)'
+- task: Bash@3
+  inputs:
+    targetType: 'inline'
+    script: |
+      # Compiling extension
+      tsc
+    workingDirectory: '$(ExtensionWorkingFolder)'
 - task: PackageAzureDevOpsExtension@2
   inputs:
     rootFolder: '$(RootManifestFolder)'
+    patternManifest: '$(ManifestFile)'
     extensionVersion: '$(QueryAzureDevOpsExtensionVersion.Extension.Version)'
     updateTasksVersion: false
+- task: PublishAzureDevOpsExtension@2
+  inputs:
+    connectTo: 'VsTeam'
+    connectedServiceName: 'huntley_marketplace'
+    fileType: 'manifest'
+    rootFolder: '$(RootManifestFolder)'
+    patternManifest: '$(ManifestFile)'
+    updateTasksVersion: false
+    shareWith: '$(ShareExtensionWith)'
