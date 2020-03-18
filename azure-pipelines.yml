@@ -30,3 +30,8 @@ steps:
       # Write your commands here
       
       echo 'Retrieved: $(Extension.Version)'
+- task: PackageAzureDevOpsExtension@2
+  inputs:
+    rootFolder: '$(RootManifestFolder)'
+    extensionVersion: '$(Extension.Version)'
+    updateTasksVersion: false
