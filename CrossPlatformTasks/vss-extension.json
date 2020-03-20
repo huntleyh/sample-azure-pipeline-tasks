@@ -2,7 +2,7 @@
   "manifestVersion": 1,
   "Id": "Contoso-Cross-PlatformTask",
   "name": "Contoso Cross Platform Task",
-  "version": "0.3.4",
+  "version": "0.3.6",
   "publisher": "AgileMindset",
   "description": "Demo tasks to run powershell scripts cross platform",
   "public": false,
