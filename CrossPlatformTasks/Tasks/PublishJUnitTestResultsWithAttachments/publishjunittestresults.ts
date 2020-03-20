@@ -395,7 +395,7 @@ function getTestCaseClassNameForComparison(classname: string, fullyQualifiedSear
         var lastIndex: number = classname.lastIndexOf(".");
         if(lastIndex > 0)
         {
-            return classname.substring(lastIndex);
+            return classname.substring(lastIndex + 1);
         }
     }
     return classname;
