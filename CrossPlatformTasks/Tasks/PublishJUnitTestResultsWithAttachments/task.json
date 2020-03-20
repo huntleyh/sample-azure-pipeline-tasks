@@ -16,13 +16,23 @@
     "author": "AgileMindset",
     "version": {
         "Major": 0,
-        "Minor": 21,
+        "Minor": 22,
         "Patch": 0
     },
     "groups": [
         {
             "name": "testCaseMapping",
             "displayName": "Test Case Mapping",
+            "isExpanded": true
+        },
+        {
+            "name": "resultsOutput",
+            "displayName": "Test Results",
+            "isExpanded": true
+        },
+        {
+            "name": "testAttachments",
+            "displayName": "General Attachments",
             "isExpanded": true
         },
         {
@@ -131,6 +141,7 @@
             "label": "Test Results Output File",
             "defaultValue": "$(System.DefaultWorkingDirectory)/JUnitTestResults.xml",
             "required": false,
+            "groupName": "resultsOutput",
             "helpMarkDown": "The JUnit test results XML"
         },
         {
@@ -138,6 +149,7 @@
             "type": "filePath",
             "label": "Source Folder",
             "defaultValue": "",
+            "groupName": "resultsOutput",
             "required": false,
             "helpMarkDown": "The source folder that the general attachment pattern(s) will be run from.  Empty is the root of the repo.  Use [variables](https://go.microsoft.com/fwlink/?LinkID=550988) if files are not in the repo. Example: $(agent.builddirectory)"
         },
@@ -146,6 +158,7 @@
             "type": "multiLine",
             "label": "General Attachment files",
             "defaultValue": "**/TestResult-*.html",
+            "groupName": "testAttachments",
             "required": true,
             "helpMarkDown": "General Test results files path. Supports multiple lines of minimatch patterns. [More Information](https://go.microsoft.com/fwlink/?LinkId=835764)",
             "properties": {
