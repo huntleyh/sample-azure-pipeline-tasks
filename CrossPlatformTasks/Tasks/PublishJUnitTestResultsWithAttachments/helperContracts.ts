@@ -1,5 +1,6 @@
 export interface inputContract
 {
+    fullyQualifiedSearch: boolean;
     testPoints: number[];
     testResultsOutputFile: string;
     parsedJUnitTestResults: jUnitTestResultRoot;
@@ -70,8 +71,16 @@ export interface testCase
     name: string[];
     time: number[];
     error: error[];
+    ignored: ignored[];
     failure: failure[];
     skipped: skipped[];
+    comparisonClassName: string;
+}
+
+export interface ignored
+{
+    message: string[];
+    type: string[]
 }
 
 export interface error

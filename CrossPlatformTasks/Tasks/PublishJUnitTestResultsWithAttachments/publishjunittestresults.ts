@@ -7,6 +7,7 @@ import util from "./taskUtil";
 import * as helperContracts from './helperContracts';
 import * as apiContracts from './azdoApiContracts';
 import * as rh from './restApiHelper';
+import { runInThisContext } from 'vm';
 
 
 var xml2js = require('xml2js');
@@ -27,7 +28,8 @@ async function run() {
         runSettings.generalAttachments = tl.getDelimitedInput('generalAttachments', '\n', false);
         runSettings.sourceFolder = util.getStringValue(tl.getPathInput('sourceFolder', true, false));
         runSettings.apiBatchSize = (tl.getVariable('JUnitTestCase.BatchSize') && tl.getVariable('JUnitTestCase.BatchSize') != '' ? parseInt(`${tl.getVariable('JUnitTestCase.BatchSize')}`) : 20);
-        
+        runSettings.fullyQualifiedSearch = tl.getBoolInput('fullyQualifiedSearch', true);
+
         let jsonMapping: string = getTestCaseJsonMapping(`${runSettings.targetType}`, `${runSettings.jsonTestCaseMappingFile}`, `${runSettings.inlineJsonTestCaseMapping}`);
 
         console.log(`Parsing JSON mapping: ${jsonMapping}`);
@@ -258,7 +260,7 @@ async function uploadTestCaseResults(testRunId: number, runSettings: helperContr
             for(var i: number = 0; i < runSettings.jsonTestCaseMapping.length; i++){
                 let entry: any = runSettings.jsonTestCaseMapping[i];            
                 tl.debug("Retrieving the JUnit test result for test case " + entry.testCaseId + " with testSuiteId " + entry.testSuiteId);
-                let testResult: apiContracts.testCaseResult | null = getJUnitTestResult(runSettings.parsedJUnitTestResults, entry.className, entry.methodName);
+                let testResult: apiContracts.testCaseResult | null = getJUnitTestResult(runSettings.parsedJUnitTestResults, entry.className, entry.methodName, runSettings.fullyQualifiedSearch);
                 tl.debug("Retrieving existing test run result for test case " + entry.testCaseId + " with testSuiteId " + entry.testSuiteId);
                 let existingRecord: apiContracts.testCaseResult = getTargetTestResult(parseInt(entry.testCaseId), parseInt(entry.testSuiteId), testRunExistingResults);
                 tl.debug("Retrieved " + existingRecord);
@@ -354,7 +356,7 @@ function indexExistingResults(existingTestResults: apiContracts.testCaseResult[]
     return indexedTestCaseResults;
 }
 
-function getJUnitTestResult(parsedJUnitTestResults: helperContracts.jUnitTestResultRoot, className: string, methodName: string): apiContracts.testCaseResult | null
+function getJUnitTestResult(parsedJUnitTestResults: helperContracts.jUnitTestResultRoot, className: string, methodName: string, fullyQualifiedSearch: boolean): apiContracts.testCaseResult | null
 {
     for(var s: number = 0; s < parsedJUnitTestResults.testsuites.length; s++)
     {
@@ -367,7 +369,14 @@ function getJUnitTestResult(parsedJUnitTestResults: helperContracts.jUnitTestRes
             {
                 let testCase: helperContracts.testCase = suite.testcase[t];
                 tl.debug('Checking test case [' + testCase.name + ',' + testCase.classname + ']');
-                if(util.stringIsEqual(testCase.classname, className) && util.stringIsEqual(testCase.name, methodName))
+
+                // Store a cache of the class name we use for comparison to avoid parsing for every iteration
+                if(!testCase.comparisonClassName || testCase.comparisonClassName == '')
+                {
+                    testCase.comparisonClassName = getTestCaseClassNameForComparison(util.concatArray(testCase.classname), fullyQualifiedSearch);
+                    tl.debug('Retrieved cached class name: ' + testCase.comparisonClassName);
+                }
+                if(util.stringIsEqual(testCase.comparisonClassName, className) && util.stringIsEqual(testCase.name, methodName))
                 {
                     tl.debug('Located test case result for ' + testCase.classname);
                     return parsedTestCaseResult(testCase);
@@ -379,6 +388,19 @@ function getJUnitTestResult(parsedJUnitTestResults: helperContracts.jUnitTestRes
     return null;
 }
 
+function getTestCaseClassNameForComparison(classname: string, fullyQualifiedSearch: boolean): string
+{
+    if(false == fullyQualifiedSearch)
+    {
+        var lastIndex: number = classname.lastIndexOf(".");
+        if(lastIndex > 0)
+        {
+            return classname.substring(lastIndex);
+        }
+    }
+    return classname;
+}
+
 function parsedTestCaseResult(testCase: helperContracts.testCase): apiContracts.testCaseResult | null
 {
     try
@@ -387,7 +409,7 @@ function parsedTestCaseResult(testCase: helperContracts.testCase): apiContracts.
 
         result.testCaseTitle = testCase.name[0];
 
-        if(util.isEmptyArray(testCase.failure) && util.isEmptyArray(testCase.skipped) && util.isEmptyArray(testCase.error))
+        if(util.isEmptyArray(testCase.failure) && util.isEmptyArray(testCase.skipped) && util.isEmptyArray(testCase.error) && util.isEmptyArray(testCase.ignored))
         {
             result.outcome = "Passed";
         }
@@ -397,7 +419,7 @@ function parsedTestCaseResult(testCase: helperContracts.testCase): apiContracts.
             result.errorMessage = util.squashArray(testCase.failure);
             //result.failureType = squashArray(testCase.failure, "type");
         }
-        else if(!util.isEmptyArray(testCase.skipped))
+        else if(!util.isEmptyArray(testCase.skipped) || !util.isEmptyArray(testCase.ignored))
         {
             result.outcome = "NotExecuted";
             //result.errorMessage = squashArray(testCase.skipped);

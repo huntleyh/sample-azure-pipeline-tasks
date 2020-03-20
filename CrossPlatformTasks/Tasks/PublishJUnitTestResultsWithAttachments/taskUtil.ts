@@ -67,11 +67,19 @@ export default class Util
      * @param values 
      * @param search 
      */
-    static stringIsEqual(values: string[], search: string): boolean
+    static stringIsEqual(values: string[] | string, search: string): boolean
     {
-        for(var i: number = 0; i < values.length; i++)
+        if(values instanceof Array)
         {
-            if(values[i] == search)
+            for(var i: number = 0; i < values.length; i++)
+            {
+                if(values[i] == search)
+                    return true;
+            }
+        }
+        else
+        {
+            if(values == search)
                 return true;
         }
         return false;

@@ -16,10 +16,15 @@
     "author": "AgileMindset",
     "version": {
         "Major": 0,
-        "Minor": 18,
+        "Minor": 20,
         "Patch": 0
     },
     "groups": [
+        {
+            "name": "testCaseMapping",
+            "displayName": "Test Case Mapping",
+            "isExpanded": true
+        },
         {
             "name": "testSelection",
             "displayName": "Test selection",
@@ -41,6 +46,7 @@
             "required": false,
             "defaultValue": "filePath",
             "helpMarkDown": "Target Test Case JSON Mapping type: File Path or Inline",
+            "groupName": "testCaseMapping",
             "options": {
                 "filePath": "File Path",
                 "inline": "Inline"
@@ -53,6 +59,7 @@
             "defaultValue": "",
             "required": true,
             "helpMarkDown": "Target Test Case JSON Mapping File Path",
+            "groupName": "testCaseMapping",
             "visibleRule": "targetType = filePath"
         },
         {
@@ -67,7 +74,16 @@
                 "rows": "10",
                 "maxLength": "5000"
             },
+            "groupName": "testCaseMapping",
             "helpMarkDown": ""
+        },
+        {
+            "name": "fullyQualifiedSearch",
+            "type": "boolean",
+            "label": "Fully qualified class name comparison",
+            "defaultValue": true,
+            "helpMarkDown": "Use fully qualified class names when matching the test case mapping to tests cases within Azure Test Plan",
+            "groupName": "testCaseMapping"
         },
         {
             "name": "testPlan",
