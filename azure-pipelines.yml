@@ -32,6 +32,11 @@ steps:
   inputs:
     command: 'install'
     workingDir: '$(ExtensionWorkingFolder)'
+- task: Npm@1
+  inputs:
+    command: 'custom'
+    workingDir: '$(ExtensionWorkingFolder)'
+    customCommand: 'install typescript'
 - task: Bash@3
   inputs:
     targetType: 'inline'
