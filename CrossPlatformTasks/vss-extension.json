@@ -2,7 +2,7 @@
   "manifestVersion": 1,
   "Id": "Contoso-Cross-PlatformTask",
   "name": "Contoso Cross Platform Task",
-  "version": "0.3.6",
+  "version": "0.4.9",
   "publisher": "AgileMindset",
   "description": "Demo tasks to run powershell scripts cross platform",
   "public": false,
@@ -53,6 +53,16 @@
       ],
       "properties": {
         "name": "Tasks/PublishJUnitTestResultsWithAttachments"
+      }
+    },
+    {
+      "id": "GetLastManualInterventionResult-task",
+      "type": "ms.vss-distributed-task.task",
+      "targets": [
+        "ms.vss-distributed-task.tasks"
+      ],
+      "properties": {
+        "name": "Tasks/GetLastManualInterventionResult"
       }
     }
   ]

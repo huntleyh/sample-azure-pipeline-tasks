@@ -1,0 +1,53 @@
+{
+    "id": "fec51a01-6951-4f22-845e-d87c628e9d00",
+    "name": "GetLastManualInterventionResult",
+    "friendlyName": "Get Last ManualIntervention Result",
+    "description": "Retrieves the response of the last Manual Intervention task within a release pipeline",
+    "helpMarkDown": "",
+    "category": "Utility",
+    "visibility": [
+        "Build",
+        "Release"
+    ],
+    "runsOn": [
+        "Server"
+    ],
+    "author": "AgileMindset",
+    "version": {
+        "Major": 0,
+        "Minor": 1,
+        "Patch": 2
+    },
+    "groups": [
+        {
+            "name": "advanced",
+            "displayName": "Advanced",
+            "isExpanded": false
+        }
+    ],
+    "instanceNameFormat": "Get Last ManualIntervention Result",
+    "minimumAgentVersion": "2.103.0",
+    "execution": {
+        "HttpRequestChain": {
+            "Execute": [
+                {
+                    "RequestInputs": {
+                        "EndpointId": "",
+                        "EndpointUrl": "$(System.CollectionUri)$(System.TeamProjectId)/_apis/Release/releases/$(Release.ReleaseId)/manualinterventions?api-version=5.0",
+                        "Method": "GET",
+                        "Body": "",
+                        "Headers": "{\n\"Content-Type\":\"application/json\"\n, \"Authorization\":\"Bearer $(system.accesstoken)\"\n}",
+                        "WaitForCompletion": "false",
+                        "Expression": "and(eq(response['statuscode'], 'OK'), gt(root['count'], 0))"
+                    },
+                    "ExecutionOptions": {
+                        "OutputVariables": {
+                            "status": "root['value'][0]['status']",
+                            "comments": "root['value'][0]['comments']"
+                        }
+                    }
+                }
+            ]
+        }
+    }
+}
