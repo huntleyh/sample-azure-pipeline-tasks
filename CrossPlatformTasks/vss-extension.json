@@ -2,7 +2,7 @@
   "manifestVersion": 1,
   "Id": "Contoso-Cross-PlatformTask",
   "name": "Contoso Cross Platform Task",
-  "version": "0.4.9",
+  "version": "0.5.35",
   "publisher": "AgileMindset",
   "description": "Demo tasks to run powershell scripts cross platform",
   "public": false,
@@ -27,6 +27,12 @@
   "files": [
     {
       "path": "Tasks"
+    },
+    {
+      "path": "Pipelines"
+    },
+    {
+      "path": "Releases"
     }
   ],
   "targets": [
@@ -64,6 +70,24 @@
       "properties": {
         "name": "Tasks/GetLastManualInterventionResult"
       }
+    },
+    {
+      "id": "GetLastManualInterventionResultAgentBased-task",
+      "type": "ms.vss-distributed-task.task",
+      "targets": [
+        "ms.vss-distributed-task.tasks"
+      ],
+      "properties": {
+        "name": "Tasks/GetLastManualInterventionResultAgentBased"
+      }
+    },
+    {
+      "id": "sample-pipeline",
+      "type": "ms.vss-build.template",
+      "targets": [ "ms.vss-build.templates" ],
+      "properties": {
+          "name": "Pipelines/simple-build-pipeline"
+      }           
     }
   ]
 }
