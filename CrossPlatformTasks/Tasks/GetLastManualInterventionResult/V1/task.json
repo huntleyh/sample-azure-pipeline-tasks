@@ -16,7 +16,7 @@
     "version": {
         "Major": 0,
         "Minor": 1,
-        "Patch": 27
+        "Patch": 33
     },
     "groups": [
         {
@@ -58,14 +58,21 @@
                     },
                     "ExecutionOptions": {
                         "OutputVariables": {
-                            "sub": "1",
-                            "itemCount": "root['count'] - variables['sub']",
-                            "status": "root['value'][ variables['itemCount'] ]['status']",
-                            "comments": "root['value'][0]['comments']"
+                            "MI_STATUS": "root['value'][{{subtract root['count'] 1}}]['status']",
+                            "MI_COMMENTS": "root['value'][0]['comments']"
                         }
                     }
                 }
             ]
         }
-    }
+    },
+    "OutputVariables": [{
+        "name": "MI_STATUS",
+        "description": "Status of manual intervention response"
+      },
+      {
+        "name": "MI_COMMENTS",
+        "description": "Comments provided in manual intervention response"
+      }
+    ]
 }
