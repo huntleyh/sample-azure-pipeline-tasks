@@ -2,7 +2,7 @@
   "manifestVersion": 1,
   "Id": "Contoso-Cross-PlatformTask",
   "name": "Contoso Cross Platform Task",
-  "version": "0.5.41",
+  "version": "0.5.50",
   "publisher": "AgileMindset",
   "description": "Demo tasks to run powershell scripts cross platform",
   "public": false,
@@ -89,6 +89,26 @@
       ],
       "properties": {
         "name": "Tasks/CopyAgentJobVariableToReleaseVariable"
+      }
+    },
+    {
+      "id": "CopyAgentlessJobVariableToReleaseVariable-task",
+      "type": "ms.vss-distributed-task.task",
+      "targets": [
+        "ms.vss-distributed-task.tasks"
+      ],
+      "properties": {
+        "name": "Tasks/CopyAgentlessJobVariableToReleaseVariable"
+      }
+    },
+    {
+      "id": "MockServiceNowGate-task",
+      "type": "ms.vss-distributed-task.task",
+      "targets": [
+        "ms.vss-distributed-task.tasks"
+      ],
+      "properties": {
+        "name": "Tasks/MockServiceNowGate"
       }
     },
     {

@@ -1,0 +1,99 @@
+{
+    "id": "291fd28f-1371-4d28-8bc4-84a53f04fe18",
+    "name": "mockServiceNowCreateRequest",
+    "friendlyName": "(MOCK) ServiceNow Change Management",
+    "description": "Gate on status of new change request or an existing change request in ServiceNow.",
+    "author": "AgileMindset",
+    "helpUrl": "",
+    "helpMarkDown": "",
+    "category": "Deploy",
+    "visibility": [
+        "Release"
+    ],
+    "runsOn": [
+        "ServerGate"
+    ],
+    "version": {
+        "Major": 1,
+        "Minor": 0,
+        "Patch": 1
+    },
+    "instanceNameFormat": "ServiceNow change management",
+    "groups": [
+        {
+            "name": "advanced",
+            "displayName": "Advanced",
+            "isExpanded": false
+        }
+    ],
+    "inputs": [
+        {
+            "name": "changeRequestAction",
+            "type": "pickList",
+            "label": "Action",
+            "required": "false",
+            "helpMarkDown": "Gate on status of new change request or an existing change request.",
+            "properties": {
+              "EditableOptions": "False"
+            },
+            "options": {
+              "createNew": "Create new change request",
+              "useExisting": "Use existing change request"
+            },
+            "defaultValue": "createNew"
+        },
+        {
+            "name": "changeRequestNumber",
+            "type": "string",
+            "label": "Change request number",
+            "required": "true",
+            "helpMarkDown": "Change request to use. Must be a valid change request number in ServiceNow.",
+            "visibleRule": "changeRequestAction = useExisting"
+        }
+    ],
+    "execution": {
+        "HttpRequestChain": {
+            "Execute": [
+                {
+                  "RequestInputs": {
+                        "EndpointId": "",
+                        "EndpointUrl": "$(system.teamFoundationCollectionUri)$(system.teamProjectId)/_apis/wit/queries?api-version=5.0",
+                        "Method": "GET",
+                        "Body": "",
+                        "Headers": "{\n\"Content-Type\":\"application/json\"\n, \"Authorization\":\"Bearer $(system.accesstoken)\"\n}",
+                        "WaitForCompletion": "false",
+                        "Expression": "ge(count(root['result']), 0)"
+                    },
+                    "ExecutionOptions": {
+                        "OutputVariables": "{\"CHANGE_REQUEST_NUMBER\" :  \"CHRQ1234567\", \"CHANGE_SYSTEM_ID\" :  \"SYSID12345\"}",
+                        "SkipSectionExpression": "eq(true, false)"
+                    }
+                },
+                {
+                    "RequestInputs": {
+                        "EndpointId": "",
+                        "EndpointUrl": "$(system.teamFoundationCollectionUri)$(system.teamProjectId)/_apis/wit/queries?api-version=5.0",
+                        "Method": "GET",
+                        "Body": "",
+                        "Headers": "{\n\"Content-Type\":\"application/json\"\n, \"Authorization\":\"Bearer $(system.accesstoken)\"\n}",
+                        "WaitForCompletion": "false",
+                        "Expression": "ge(count(root['result']), 0)"
+                    },
+                    "ExecutionOptions": {
+                      "OutputVariables": "{\"CHANGE_REQUEST_NUMBER\" :  \"jsonpath('$.result.number')[0]\"}",
+                      "SkipSectionExpression": "eq(true, false)"
+                    }
+                }
+            ]
+        }
+    },
+    "OutputVariables": [{
+        "name": "CHANGE_REQUEST_NUMBER",
+        "description": "Number of the change request"
+      },
+      {
+        "name": "CHANGE_SYSTEM_ID",
+        "description": "Sys_id of the change request"
+      }
+    ]
+}
