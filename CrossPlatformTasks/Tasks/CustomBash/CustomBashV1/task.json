@@ -1,0 +1,52 @@
+{
+    "$schema": "https://raw.githubusercontent.com/Microsoft/azure-pipelines-task-lib/master/tasks.schema.json",
+    "id": "e2849086-ae3b-4ee8-9208-46bc8add5a68",
+    "name": "CustomBashTask",
+    "friendlyName": "Custom Bash Task",
+    "description": "Run your Bash script task on Linux, macOS, or Windows",
+    "helpMarkDown": "",
+    "category": "Utility",
+    "author": "AgileMindset",
+    "version": {
+        "Major": 1,
+        "Minor": 5,
+        "Patch": 0
+    },
+    "groups": [
+        {
+            "name": "advanced",
+            "displayName": "Advanced",
+            "isExpanded": false
+        }
+    ],
+    "instanceNameFormat": "CustomBash Task: $(sampleString)",
+    "inputs": [
+        {
+            "name": "input1",
+            "type": "string",
+            "label": "Sample String",
+            "defaultValue": "a sample input to test with",
+            "required": true,
+            "helpMarkDown": "A sample string"
+        }
+    ],
+    "execution": {
+        "Node": {
+            "target": "bashtask.js",
+            "argumentFormat": ""
+        }
+    },
+    "messages": {
+        "GeneratingScript": "Generating script.",
+        "JS_ExitCode": "PowerShell exited with code '%s'.",
+        "JS_FormattedCommand": "Formatted command: %s",
+        "JS_InvalidErrorActionPreference": "Invalid ErrorActionPreference '%s'. The value must be one of: 'Stop', 'Continue', or 'SilentlyContinue'",
+        "JS_InvalidFilePath": "Invalid file path '%s'. A path to a .ps1 file is required.",
+        "JS_Stderr": "PowerShell wrote one or more lines to the standard error stream.",
+        "PS_ExitCode": "PowerShell exited with code '{0}'.",
+        "PS_FormattedCommand": "Formatted command: {0}",
+        "PS_InvalidErrorActionPreference": "Invalid ErrorActionPreference '{0}'. The value must be one of: 'Stop', 'Continue', or 'SilentlyContinue'",
+        "PS_InvalidFilePath": "Invalid file path '{0}'. A path to a .ps1 file is required.",
+        "PS_UnableToDetermineExitCode": "Unexpected exception. Unable to determine the exit code from powershell."
+    }
+}
